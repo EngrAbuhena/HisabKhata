@@ -1,0 +1,95 @@
+name: Signed Android release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Validate required signing secrets
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Required GitHub Actions secret $name is missing."
+              exit 1
+            fi
+          done
+      - name: Validate tag and extract matching changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="$GITHUB_REF_NAME"
+          [[ "$tag" =~ ^v[0-9A-Za-z][0-9A-Za-z._+-]*$ ]] || { echo '::error::Invalid release tag.'; exit 1; }
+          version="${tag#v}"
+          configured=$(sed -n 's/^[[:space:]]*versionName = "\([^"]*\)".*/\1/p' app/build.gradle.kts | head -n 1)
+          [[ "$version" == "$configured" ]] || { echo '::error::Tag does not match Android versionName.'; exit 1; }
+          python3 scripts/release_notes.py "$tag" > "$RUNNER_TEMP/release-notes.md"
+          echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
+      - name: Install Android SDK components
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Restore private keystore
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$RUNNER_TEMP/hisab-signing"
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/hisab-signing/release.keystore"
+          [[ -s "$RUNNER_TEMP/hisab-signing/release.keystore" ]] || { echo '::error::Decoded keystore is empty.'; exit 1; }
+          echo "KEYSTORE_PATH=$RUNNER_TEMP/hisab-signing/release.keystore" >> "$GITHUB_ENV"
+      - name: Build signed release APK and AAB
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew --no-daemon testDebugUnitTest assembleRelease bundleRelease
+      - name: Verify signatures and prepare checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/release-files"
+          cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/release-files/HisabKhata-$RELEASE_VERSION.apk"
+          cp app/build/outputs/bundle/release/app-release.aab "$RUNNER_TEMP/release-files/HisabKhata-$RELEASE_VERSION.aab"
+          cd "$RUNNER_TEMP/release-files"
+          apk="HisabKhata-$RELEASE_VERSION.apk"
+          aab="HisabKhata-$RELEASE_VERSION.aab"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$apk" > "$RUNNER_TEMP/apk-signature.txt"
+          jarsigner -verify "$aab" > /dev/null
+          apk_sha=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/apk-signature.txt" | tr '[:upper:]' '[:lower:]')
+          aab_sha=$(keytool -printcert -jarfile "$aab" | sed -n 's/^[[:space:]]*SHA256: //p' | head -n 1 | tr -d ':' | tr '[:upper:]' '[:lower:]')
+          [[ -n "$apk_sha" && "$apk_sha" == "$aab_sha" ]] || { echo '::error::APK and AAB signing certificates do not match.'; exit 1; }
+          sha256sum "$apk" "$aab" > SHA256SUMS.txt
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: ${{ runner.temp }}/release-notes.md
+          files: |
+            ${{ runner.temp }}/release-files/HisabKhata-${{ env.RELEASE_VERSION }}.apk
+            ${{ runner.temp }}/release-files/HisabKhata-${{ env.RELEASE_VERSION }}.aab
+            ${{ runner.temp }}/release-files/SHA256SUMS.txt
+          fail_on_unmatched_files: true
+      - name: Remove temporary keystore
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/hisab-signing/release.keystore"

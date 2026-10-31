@@ -1,0 +1,112 @@
+import java.util.Properties
+
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.kapt")
+    id("com.google.dagger.hilt.android")
+}
+
+// A local keystore.properties takes precedence. In CI use environment variables;
+// never print the secret values. Incomplete/missing signing inputs leave release unsigned.
+val signingFile = rootProject.file("keystore.properties")
+val signingProperties = Properties().apply {
+    if (signingFile.isFile) signingFile.inputStream().use(::load)
+}
+fun signingValue(property: String, environment: String): String? =
+    (if (signingFile.isFile) signingProperties.getProperty(property) else System.getenv(environment))
+        ?.takeIf { it.isNotEmpty() }
+val releaseStorePath = signingValue("storeFile", "KEYSTORE_PATH")
+val releaseStorePassword = signingValue("storePassword", "KEYSTORE_PASSWORD")
+val releaseKeyAlias = signingValue("keyAlias", "KEY_ALIAS")
+val releaseKeyPassword = signingValue("keyPassword", "KEY_PASSWORD")
+val releaseKeystore = releaseStorePath?.let { rootProject.file(it) }
+val releaseSigningReady = releaseKeystore?.isFile == true &&
+    releaseStorePassword != null && releaseKeyAlias != null && releaseKeyPassword != null
+if (!releaseSigningReady) {
+    logger.lifecycle("Hisab Khata: release signing is not configured; release APK/AAB will be UNSIGNED. " +
+        "Use keystore.properties or KEYSTORE_PATH, KEYSTORE_PASSWORD, KEY_ALIAS and KEY_PASSWORD.")
+}
+
+android {
+    namespace = "com.hisabkhata"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "com.hisabkhata"
+        minSdk = 24
+        targetSdk = 35
+        versionCode = 5
+        versionName = "1.0.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (releaseSigningReady) create("release") {
+            storeFile = releaseKeystore
+            storePassword = releaseStorePassword
+            keyAlias = releaseKeyAlias
+            keyPassword = releaseKeyPassword
+        }
+    }
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.findByName("release")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = "17" }
+    buildFeatures { compose = true }
+    composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
+    packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+    // The calendar currently uses English even on devices with a different locale.
+    // Keep language resources in bundles so future translations can be added safely.
+    bundle { language { enableSplit = false } }
+}
+
+kapt {
+    correctErrorTypes = true
+    arguments { arg("room.schemaLocation", "$projectDir/schemas") }
+}
+
+dependencies {
+    val composeBom = platform("androidx.compose:compose-bom:2024.09.03")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+    implementation("androidx.navigation:navigation-compose:2.8.3")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-compiler:2.51.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    // Small Excel writer, strict JSON parsing, and optional Google account access.
+    implementation("org.dhatim:fastexcel:0.18.4")
+    implementation("com.google.code.gson:gson:2.11.0")
+    implementation("com.google.android.gms:play-services-auth:22.0.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.2")
+
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+}

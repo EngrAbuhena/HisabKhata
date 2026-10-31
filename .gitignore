@@ -1,0 +1,55 @@
+# Gradle, Android Studio, and generated output
+.gradle/
+**/build/
+build/
+local.properties
+*.iml
+.idea/*
+!.idea/runConfigurations/
+!.idea/runConfigurations/*.xml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Packages and signing material
+*.apk
+*.aab
+*.apks
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+keystore.properties
+KEYSTORE_INFO.txt
+*.secrets
+*.secret
+google-services.json
+
+# Environment files and logs
+.env*
+**/.env*
+*.env
+*.env.*
+*.log
+
+# User exports, backups and databases (never commit real ledger data).
+# Ignore all JSON by default because the user can name a backup anything.
+*.csv
+*.xls
+*.xlsx
+*.ods
+*.pdf
+*.json
+*.backup
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Room schemas and intentionally fictional, bundled samples are part of the app.
+!app/schemas/**/*.json
+!app/src/main/assets/samples/*.csv
+!app/src/main/assets/samples/*.xlsx
