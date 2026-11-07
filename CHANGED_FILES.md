@@ -1,4 +1,29 @@
-# v1.0.0 changed files
+# Changed files
+
+## v1.1.0: automatic Drive backup
+
+Compared with v1.0.0, this update adds opt-in daily Google Drive backups and
+keeps the existing manual Drive/local restore with merge or confirmed replace.
+The ledger logic, database schema, application ID and signing identity are unchanged.
+
+### Added
+
+- `app/src/main/java/com/hisabkhata/domain/backup/AutomaticBackup.kt`
+- `app/src/main/java/com/hisabkhata/data/drive/AutomaticDriveBackupCoordinator.kt`
+- `app/src/main/java/com/hisabkhata/data/drive/AutomaticDriveBackupWorker.kt`
+- `app/src/test/java/com/hisabkhata/domain/backup/AutomaticBackupTest.kt`
+- `app/src/androidTest/java/com/hisabkhata/data/drive/AutomaticDriveBackupIntegrationTest.kt`
+
+### Modified
+
+- App version and WorkManager dependency; manifest and application initialization.
+- Drive error reporting, preferences, backup screen/view model and strings.
+- R8 keep rules, Android and minified-release probes.
+- README, Google setup/release/privacy documentation and changelog.
+
+No files were removed. No key, password, user ledger or export was added.
+
+## v1.0.0 changed files
 
 Compared with the prior Hisab Khata Compact Search (versionCode 4) source package.
 Release work changes build/signing configuration, documentation, CI, fictional

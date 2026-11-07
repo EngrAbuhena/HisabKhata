@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
     <!-- Internet is used only for the optional Google Drive backup feature. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Optional alerts if automatic backup needs the user's attention. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:name=".HisabKhataApplication"
         android:allowBackup="false"
@@ -20,6 +22,12 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/export_paths" />
         </provider>
+        <receiver android:name=".data.drive.BackupClockChangeReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:exported="true"

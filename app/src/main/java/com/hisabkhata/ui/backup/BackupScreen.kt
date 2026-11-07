@@ -1,8 +1,11 @@
 package com.hisabkhata.ui.backup
 
+import android.Manifest
 import android.accounts.Account
 import android.accounts.AccountManager
 import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
 import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -28,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -37,11 +41,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
@@ -52,6 +60,7 @@ import com.google.android.gms.auth.api.identity.RevokeAccessRequest
 import com.google.android.gms.common.api.Scope
 import com.hisabkhata.R
 import com.hisabkhata.data.drive.DRIVE_APPDATA_SCOPE
+import com.hisabkhata.domain.backup.AutomaticBackupStatus
 import com.hisabkhata.ui.components.ConfirmDeleteDialog
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -63,6 +72,9 @@ fun BackupScreen(onBack: () -> Unit, onBackupDeleted: () -> Unit = {}, viewModel
     val state by viewModel.state.collectAsStateWithLifecycle()
     val lastLocal by viewModel.lastLocalBackup.collectAsStateWithLifecycle()
     val lastDrive by viewModel.lastDriveBackup.collectAsStateWithLifecycle()
+    val automaticEnabled by viewModel.automaticDriveEnabled.collectAsStateWithLifecycle()
+    val automaticStatus by viewModel.automaticDriveStatus.collectAsStateWithLifecycle()
+    val lastAutomatic by viewModel.lastAutomaticDriveBackup.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val backupFileName = stringResource(R.string.backup_filename)
     var authorizing by remember { mutableStateOf(false) }
@@ -72,15 +84,14 @@ fun BackupScreen(onBack: () -> Unit, onBackupDeleted: () -> Unit = {}, viewModel
     val saveLocal = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json"), viewModel::saveLocal)
     val openLocal = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), viewModel::loadLocal)
     val deleteLocal = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), viewModel::requestLocalDelete)
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     fun finishAuthorization(result: AuthorizationResult, name: String, action: DriveAction) {
         authorizing = false; pending = null
         val token = result.accessToken
         if (token.isNullOrBlank() || !result.grantedScopes.contains(DRIVE_APPDATA_SCOPE)) { viewModel.signInFailed(); return }
-        if (action == DriveAction.Connect) {
-            viewModel.connected(name)
-            viewModel.runDrive(DriveAction.Refresh, token)
-        } else viewModel.runDrive(action, token)
+        if (action == DriveAction.Connect) viewModel.connected(name)
+        viewModel.runDrive(if (action == DriveAction.Connect) DriveAction.Refresh else action, token)
     }
     val consent = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
         val saved = pending
@@ -153,6 +164,31 @@ fun BackupScreen(onBack: () -> Unit, onBackupDeleted: () -> Unit = {}, viewModel
                         val newest = maxOf(state.backups.maxOfOrNull { it.createdAt } ?: 0L, lastDrive)
                         val last = when { newest > 0 -> formatBackupTime(newest); state.driveLoaded -> stringResource(R.string.backup_never); else -> stringResource(R.string.backup_unknown) }
                         Text(stringResource(R.string.drive_last, last), style = MaterialTheme.typography.bodySmall)
+                        val automaticTitle = stringResource(R.string.drive_auto_title)
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(automaticTitle, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+                            Switch(modifier = Modifier.semantics { contentDescription = automaticTitle },
+                                checked = automaticEnabled, enabled = !busy, onCheckedChange = { enabled ->
+                                viewModel.setAutomaticDriveBackup(enabled)
+                                if (enabled && Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(
+                                        context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                                    notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                }
+                            })
+                        }
+                        Text(stringResource(R.string.drive_auto_description), style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.drive_auto_last, if (lastAutomatic == 0L)
+                            stringResource(R.string.backup_never) else formatBackupTime(lastAutomatic)), style = MaterialTheme.typography.bodySmall)
+                        if (automaticEnabled) {
+                            val status = when (automaticStatus) {
+                                AutomaticBackupStatus.RETRYING -> R.string.drive_auto_retrying
+                                AutomaticBackupStatus.NEEDS_AUTHORIZATION -> R.string.drive_auto_needs_authorization
+                                AutomaticBackupStatus.FAILED -> R.string.drive_auto_failed
+                                else -> null
+                            }
+                            status?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                        }
                         Button(onClick = { authorize(account, DriveAction.Upload) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.drive_upload)) }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedButton(onClick = { authorize(account, DriveAction.Refresh) }, enabled = !busy, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.drive_refresh)) }

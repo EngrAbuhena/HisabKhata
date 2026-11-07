@@ -13,6 +13,7 @@ import java.io.StringWriter;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -29,8 +30,8 @@ public final class ReleaseProbe extends Instrumentation {
       context = getTargetContext(); appLoader = context.getClassLoader();
       check((context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) == 0, "Target is not a release APK");
       check("com.hisabkhata".equals(context.getPackageName()), "Wrong target package");
-      Object fixture=fixture(); testBackupCodec(fixture); testTransfer(fixture); testAuthorization();
-      report.append("RELEASE PROBE PASS: backup/restore, CSV/XLSX import/export, PDF, Room, and offline Google Identity setup\n");
+      Object fixture=fixture(); testBackupCodec(fixture); testTransfer(fixture); testAuthorization(); testAutomaticWorker();
+      report.append("RELEASE PROBE PASS: offline release smoke checks completed\n");
       result.putString("stream", "\n"+report); finish(Activity.RESULT_OK, result);
     } catch (Throwable t) {
       StringWriter sw=new StringWriter(); t.printStackTrace(new PrintWriter(sw));
@@ -173,6 +174,32 @@ public final class ReleaseProbe extends Instrumentation {
       report.append("PASS: in-memory Room replace/merge restore, linked records, and duplicate-safe import\n");
     } finally { db.getClass().getMethod("close").invoke(db); }
   }
+  private void testAutomaticWorker() throws Exception {
+    // Never trigger an upload if a real test device already has automatic backup enabled.
+    if (context.getSharedPreferences("hisab_settings", Context.MODE_PRIVATE).getBoolean("automatic_drive_enabled", false)) {
+      report.append("SKIP: automatic worker execution (already enabled on this device)\n"); return;
+    }
+    Class<?> worker=type("com.hisabkhata.data.drive.AutomaticDriveBackupWorker");
+    Class<?> builderType=type("androidx.work.OneTimeWorkRequest$Builder");
+    Object builder=builderType.getConstructor(Class.class).newInstance(worker);
+    Object request=builderType.getMethod("build").invoke(builder);
+    Class<?> requestType=type("androidx.work.WorkRequest"), managerType=type("androidx.work.WorkManager");
+    Object manager=managerType.getMethod("getInstance",Context.class).invoke(null,context);
+    Object operation=managerType.getMethod("enqueue",requestType).invoke(manager,request);
+    ((Future<?>)type("androidx.work.Operation").getMethod("getResult").invoke(operation)).get(30,TimeUnit.SECONDS);
+    UUID id=(UUID)requestType.getMethod("getId").invoke(request);
+    long deadline=System.currentTimeMillis()+120_000L; String state="";
+    while(System.currentTimeMillis()<deadline) {
+      Object future=managerType.getMethod("getWorkInfoById",UUID.class).invoke(manager,id);
+      Object info=((Future<?>)future).get(30,TimeUnit.SECONDS);
+      if(info!=null) state=String.valueOf(type("androidx.work.WorkInfo").getMethod("getState").invoke(info));
+      if(state.equals("SUCCEEDED") || state.equals("FAILED") || state.equals("CANCELLED")) break;
+      Thread.sleep(250L);
+    }
+    check(state.equals("SUCCEEDED"),"Disabled automatic WorkManager worker did not run safely: "+state);
+    report.append("PASS: R8 WorkManager instantiates and runs disabled worker as a no-op\n");
+  }
+
   private void testAuthorization() throws Exception {
     Class<?> scope=type("com.google.android.gms.common.api.Scope");
     Object driveScope=scope.getConstructor(String.class).newInstance("https://www.googleapis.com/auth/drive.appdata");

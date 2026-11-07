@@ -66,8 +66,10 @@ The script checks the installed APK against the build, uses its matching R8 mapp
 and signs a temporary standalone instrumentation APK without printing passwords.
 The probe uses an **in-memory** Room database, not the real ledger: it checks JSON
 backup, replace/merge restore and linked records, duplicate-safe import, CSV/XLSX
-import/export, PDF generation, and Google Identity request/client construction.
-It does not sign in or contact Google. It leaves a separate test package, which you
+import/export, PDF generation, Google Identity request/client construction, and
+instantiation of the disabled automatic WorkManager worker. It skips worker execution
+if automatic backup is already enabled on the test device. It does not sign in or
+contact Google. It leaves a separate test package, which you
 can remove with `adb uninstall com.hisabkhata.releaseprobe`. A live authorization
 and Drive round trip still require your own configured account and Play services.
 

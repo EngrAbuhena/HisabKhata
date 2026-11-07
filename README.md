@@ -12,12 +12,15 @@ and Google Play services.
 - Mobile-friendly tables and confirmations before destructive operations.
 - CSV, Excel and PDF export; CSV and Excel import with bundled **fictional** samples.
 - Local JSON backup and restore, including merge or confirmed replacement.
-- Manual Google Drive backup/restore in the selected account's private app-data
-  folder, with a backup list and last-backup time.
+- Google Drive backups in the selected account's private app-data folder: manual
+  backup plus an opt-in daily backup around 11:45 p.m. device-local time.
+- Manual restore of a selected local JSON or Drive backup, with a backup list,
+  last-backup times, merge, or explicitly confirmed replacement.
 - System, light and dark themes.
 
-**Not included:** automatic daily backup at 23:45, a dedicated backup log, and an
-app lock. Google Drive backup is manual. The app does not encrypt exported files.
+Automatic backup needs internet and may be delayed by Android; it is not an exact
+alarm or a substitute for testing a restore. A dedicated backup log and an app
+lock are not included. The app does not encrypt backup or exported files.
 
 ## Screenshots
 
@@ -30,7 +33,7 @@ publishing; do not commit screenshots of a real ledger or account.
 - JDK 17, Android SDK Platform 35 and Build-Tools 35.0.0.
 - Android Studio with Android Gradle Plugin 8.7.3 support, or the included Gradle
   8.9 wrapper. Dependency downloads require network access.
-- Package: `com.hisabkhata`; version: `1.0.0` (`versionCode` 5).
+- Package: `com.hisabkhata`; version: `1.1.0` (`versionCode` 6).
 
 ## Build and install
 
@@ -65,7 +68,7 @@ not installable or publishable until signed. Release builds enable R8 and resour
 shrinking. See [docs/RELEASING.md](docs/RELEASING.md) for secure signing, tests,
 GitHub secrets and tagging.
 
-The supplied v1.0.0 release reuses the previous installed debug build's signing
+The supplied v1.0.0 and v1.1.0 releases reuse the previous installed debug build's signing
 **key** so it can update that app without an uninstall. That key originated as an
 Android debug key; keep its private keystore secure. A separately supplied copy is
 protected with a new password, but that does not undo exposure of any earlier copy.
@@ -81,6 +84,28 @@ changing phones, uninstalling, restoring over data, or changing signing identity
 create and test a local JSON backup and keep it somewhere safe. Android automatic
 app backup is disabled. JSON, CSV, Excel and PDF files are not encrypted by the
 app; protect your files and Google account. See [PRIVACY.md](PRIVACY.md).
+
+## Back up and restore
+
+1. Open **Settings → Backup and restore** and choose **Sign in with Google**.
+   Select the account and grant the private Drive app-data permission. Upload a
+   manual backup first and verify that it appears after **Refresh backups**.
+2. Turn on **Automatic daily backup**. It is off by default and aims for 11:45 p.m.
+   in the device's local time. On Android 13+, you can allow optional notifications
+   for backup problems. The backup screen shows the last automatic success and
+   whether a retry or renewed authorization is needed.
+3. To restore, select a listed Drive backup and tap **Restore**, or choose
+   **Restore from JSON file** for a local backup. Review the record counts. **Merge**
+   appends records (including duplicates); **Replace** overwrites the current
+   database and requires a separate confirmation. Make a local backup first.
+
+Automatic backups are new snapshots, not sync, and are not deleted automatically;
+use the backup list to remove old ones if needed. Android can delay background
+work for connectivity, power, device-off and other system restrictions. A force-
+stopped app will not run background work until reopened. Turning the toggle off or
+signing out cancels scheduled work; an already-started upload may still finish.
+Restore is never automatic. Backups are limited to 32 MiB and are not encrypted
+by this app. **Test backup and restore with your own account before relying on it.**
 
 ## Google Drive setup
 

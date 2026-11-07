@@ -7,6 +7,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.hisabkhata.data.drive.AutomaticDriveBackupScheduler
 import com.hisabkhata.data.drive.DriveBackupFile
 import com.hisabkhata.data.drive.DriveBackupService
 import com.hisabkhata.data.local.HisabDatabase
@@ -144,7 +145,8 @@ class DeleteConfirmationTest {
                 override fun getSharedPreferences(name: String, mode: Int) =
                     super.getSharedPreferences("delete_confirmation_test", mode)
             }
-            val vm = BackupViewModel(transfer, DriveBackupService(context), AppPreferences(isolatedPrefsContext), context)
+            val prefs = AppPreferences(isolatedPrefsContext)
+            val vm = BackupViewModel(transfer, DriveBackupService(context), prefs, AutomaticDriveBackupScheduler(context, prefs), context)
             vm.loadLocal(Uri.fromFile(file))
             withTimeout(30_000) { vm.state.first { it.candidate != null } }
             vm.confirmDelete()

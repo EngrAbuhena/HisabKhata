@@ -4,6 +4,23 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions use
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-11-07
+
+### Added
+- Opt-in automatic Google Drive app-data snapshots around 23:45 device-local time,
+  with persistent Android background scheduling, network constraints and retries.
+- Last automatic success and actionable failure/reauthorization status; optional
+  notification alerts when attention is required.
+- Tests for daily scheduling, opt-in/account changes, retries and safe restore paths.
+
+### Notes
+- Automatic timing is not exact and may be delayed by Android. Restore remains
+  manual; merge appends records and replace requires confirmation.
+- Google authorization and real Drive upload/restore must be tested using the
+  owner's Google Cloud OAuth project, account, network and Play services.
+- Android `versionCode` is 6. The supplied key remains the existing debug
+  certificate for install-over compatibility, so these builds are not Play-ready.
+
 ## [1.0.0] - 2026-10-31
 
 ### Added

@@ -18,7 +18,7 @@ import javax.net.ssl.HttpsURLConnection
 
 const val DRIVE_APPDATA_SCOPE = "https://www.googleapis.com/auth/drive.appdata"
 data class DriveBackupFile(val id: String, val name: String, val createdAt: Long, val size: Long)
-class DriveRequestException : IllegalStateException()
+class DriveRequestException(val statusCode: Int? = null) : IllegalStateException()
 class DriveUnauthorizedException : IllegalStateException()
 
 /** Uses only the private appDataFolder scope, never the user's regular Drive files. */
@@ -94,7 +94,7 @@ class DriveBackupService @Inject constructor(@ApplicationContext private val con
             }
             val status = conn.responseCode
             if (status == 401) throw DriveUnauthorizedException()
-            if (status !in 200..299) throw DriveRequestException()
+            if (status !in 200..299) throw DriveRequestException(status)
             val stream = conn.inputStream ?: ByteArrayInputStream(ByteArray(0))
             return stream.use { com.hisabkhata.data.transfer.FileTransfer.readBounded(it, limit) }
         } finally { conn.disconnect() }

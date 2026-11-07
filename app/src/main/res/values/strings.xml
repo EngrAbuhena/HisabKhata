@@ -295,6 +295,17 @@ People created: %4$d</string>
     <string name="drive_sign_out">Sign out</string>
     <string name="drive_upload">Back up to Google Drive</string>
     <string name="drive_refresh">Refresh backups</string>
+    <string name="drive_auto_title">Automatic daily backup</string>
+    <string name="drive_auto_description">Back up around 11:45 PM in the device\'s local time when connected to the internet. Android may delay it.</string>
+    <string name="drive_auto_last">Last automatic backup: %1$s</string>
+    <string name="drive_auto_retrying">The last automatic attempt failed. It will retry when possible.</string>
+    <string name="drive_auto_needs_authorization">Automatic backup needs permission again. Tap Refresh backups to reconnect.</string>
+    <string name="drive_auto_failed">Automatic backup failed. Try a manual backup and check Drive access, storage, and backup size.</string>
+    <string name="auto_backup_notification_channel">Automatic backup alerts</string>
+    <string name="auto_backup_attention_title">Automatic Drive backup needs attention</string>
+    <string name="auto_backup_reauthorize_notification">Open Hisab Khata → Settings → Backup and restore to reconnect Google Drive.</string>
+    <string name="auto_backup_retry_notification">Automatic backup could not be completed after several attempts. Check your connection and Drive access.</string>
+    <string name="auto_backup_failed_notification">Open Hisab Khata → Settings → Backup and restore to review the backup.</string>
     <string name="drive_previous">Previous Drive backups</string>
     <string name="drive_empty">No Drive backups yet.</string>
     <string name="drive_last">Last Drive backup: %1$s</string>

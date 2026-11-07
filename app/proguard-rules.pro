@@ -27,9 +27,21 @@
 # minified-release instrumentation. Keep its API available to the runner.
 -keep class androidx.tracing.** { *; }
 
-# Future WorkManager workers (none are currently implemented by this app).
--keep class androidx.work.** { *; }
+# WorkManager instantiates persisted workers by class name. Its consumer rules
+# retain the required constructors. Keep the small public surface used by the
+# separate offline release probe without retaining the entire WorkManager library.
 -keep class * extends androidx.work.ListenableWorker { *; }
+-keep class androidx.work.OneTimeWorkRequest$Builder { public <init>(java.lang.Class); }
+-keep class androidx.work.WorkRequest$Builder { public androidx.work.WorkRequest build(); }
+-keep class androidx.work.WorkRequest { public java.util.UUID getId(); }
+-keep class androidx.work.WorkManager {
+    public static androidx.work.WorkManager getInstance(android.content.Context);
+    public androidx.work.Operation enqueue(androidx.work.WorkRequest);
+    public com.google.common.util.concurrent.ListenableFuture getWorkInfoById(java.util.UUID);
+}
+-keep interface androidx.work.Operation { public com.google.common.util.concurrent.ListenableFuture getResult(); }
+-keep class androidx.work.WorkInfo { public androidx.work.WorkInfo$State getState(); }
+-keep class androidx.work.WorkInfo$State { *; }
 
 # Google Identity / Play Services authorization and the app's direct HTTPS Drive client.
 -keep class com.google.android.gms.auth.** { *; }

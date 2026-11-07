@@ -7,6 +7,7 @@ import android.provider.OpenableColumns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hisabkhata.R
+import com.hisabkhata.data.drive.AutomaticDriveBackupScheduler
 import com.hisabkhata.data.drive.DriveBackupFile
 import com.hisabkhata.data.drive.DriveBackupService
 import com.hisabkhata.data.drive.DriveUnauthorizedException
@@ -14,6 +15,7 @@ import com.hisabkhata.data.settings.AppPreferences
 import com.hisabkhata.data.transfer.DataTransferRepository
 import com.hisabkhata.data.transfer.FileTransfer
 import com.hisabkhata.data.transfer.RestoreMode
+import com.hisabkhata.domain.backup.AutomaticBackupStatus
 import com.hisabkhata.domain.backup.BackupCodec
 import com.hisabkhata.domain.backup.DatabaseBackup
 import com.hisabkhata.domain.backup.InvalidBackupException
@@ -71,22 +73,40 @@ class BackupViewModel @Inject constructor(
     private val repository: DataTransferRepository,
     private val drive: DriveBackupService,
     private val preferences: AppPreferences,
+    private val automaticScheduler: AutomaticDriveBackupScheduler,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val mutable = MutableStateFlow(BackupUiState(accountName = preferences.driveAccount.value))
     val state = mutable.asStateFlow()
     val lastLocalBackup = preferences.lastLocalBackup
     val lastDriveBackup = preferences.lastDriveBackup
+    val automaticDriveEnabled = preferences.automaticDriveEnabled
+    val automaticDriveStatus = preferences.automaticDriveStatus
+    val lastAutomaticDriveBackup = preferences.lastAutomaticDriveBackup
     private val eventChannel = Channel<BackupEvent>(Channel.BUFFERED)
     val events = eventChannel.receiveAsFlow()
 
     fun connected(account: String) {
+        if (preferences.driveAccount.value != account) automaticScheduler.cancel()
         preferences.setDriveAccount(account)
         mutable.update { it.copy(accountName = account, backups = emptyList(), driveLoaded = false, problem = null, notice = null) }
+    }
+    fun setAutomaticDriveBackup(enabled: Boolean) {
+        preferences.setAutomaticDriveEnabled(enabled)
+        if (preferences.activeAccount() == null) automaticScheduler.cancel() else automaticScheduler.scheduleNext()
+    }
+    private fun authorizationSucceeded() {
+        if (preferences.automaticDriveStatus.value == AutomaticBackupStatus.NEEDS_AUTHORIZATION) {
+            preferences.recordStatus(AutomaticBackupStatus.NONE)
+            automaticScheduler.dismissAlert()
+            automaticScheduler.scheduleNext()
+        }
     }
     fun signInFailed() { mutable.update { it.copy(deleteTarget = if (it.deleteConfirmed) null else it.deleteTarget,
         deleteConfirmed = false, problem = BackupProblem.SIGN_IN_FAILED) } }
     fun signedOut(revoked: Boolean) {
+        preferences.setAutomaticDriveEnabled(false)
+        automaticScheduler.cancel()
         preferences.setDriveAccount(null)
         mutable.value = BackupUiState(problem = if (revoked) null else BackupProblem.REVOKE_FAILED)
     }
@@ -230,6 +250,7 @@ class BackupViewModel @Inject constructor(
                         is DriveAction.Delete -> { drive.delete(token, action.id); DriveOutcome.Deleted(action.id) }
                     }
                 }
+                authorizationSucceeded()
                 when (result) {
                     is DriveOutcome.Listed -> mutable.update { it.copy(busy = false, backups = result.files, driveLoaded = true) }
                     is DriveOutcome.Uploaded -> {
@@ -246,6 +267,7 @@ class BackupViewModel @Inject constructor(
                 }
             } catch (e: CancellationException) { throw e }
             catch (_: DriveUnauthorizedException) {
+                if (preferences.activeAccount() == account) preferences.recordStatus(AutomaticBackupStatus.NEEDS_AUTHORIZATION)
                 mutable.update { it.copy(busy = false, deleteTarget = if (action is DriveAction.Delete) null else it.deleteTarget,
                     deleteConfirmed = false, problem = BackupProblem.DRIVE_FAILED) }
                 eventChannel.send(BackupEvent.ClearExpiredToken(token))
