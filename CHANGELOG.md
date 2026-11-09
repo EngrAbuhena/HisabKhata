@@ -4,6 +4,23 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions use
 [Semantic Versioning](https://semver.org/).
 
+## [1.2.0]
+
+### Added
+- English, Bengali and phone-language options under Settings, remembered across restarts.
+- Bengali app text, calendar labels and backup alerts; app-generated numbers use 0–9 digits.
+- Bengali digit input for amounts and Bengali/English CSV and Excel import headings.
+- Bengali report headings, Unicode-safe PDF line wrapping and language/round-trip tests.
+- A compact date dialog that keeps both edge columns visible on narrow screens and
+  scrolls its calendar on short screens.
+
+### Notes
+- Existing ledger records and the JSON backup schema remain unchanged. Imported
+  English files remain supported. Google/system-owned screens can use the phone language.
+- Translation does not resolve Google OAuth configuration or replace a live Drive test.
+- Android `versionCode` is 7; the existing debug certificate remains necessary for
+  install-over compatibility and is not suitable for a Google Play release.
+
 ## [1.1.0] - 2026-11-07
 
 ### Added

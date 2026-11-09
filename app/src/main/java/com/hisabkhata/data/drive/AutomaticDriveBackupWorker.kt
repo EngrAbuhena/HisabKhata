@@ -21,6 +21,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.hisabkhata.MainActivity
 import com.hisabkhata.R
+import com.hisabkhata.data.settings.AppLocale
 import com.hisabkhata.data.settings.AppPreferences
 import com.hisabkhata.domain.backup.AutomaticBackupResult
 import com.hisabkhata.domain.backup.DailyBackupSchedule
@@ -139,13 +140,14 @@ private fun clearAttentionNotification(context: Context) {
 }
 
 private fun showAttentionNotification(context: Context, message: Int) {
+    val localized = AppLocale.context(context)
     val manager = NotificationManagerCompat.from(context)
     if (!manager.areNotificationsEnabled()) return
     if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) !=
         android.content.pm.PackageManager.PERMISSION_GRANTED) return
     if (Build.VERSION.SDK_INT >= 26) {
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(
-            NotificationChannel(NOTIFICATION_CHANNEL, context.getString(R.string.auto_backup_notification_channel), NotificationManager.IMPORTANCE_DEFAULT)
+            NotificationChannel(NOTIFICATION_CHANNEL, localized.getString(R.string.auto_backup_notification_channel), NotificationManager.IMPORTANCE_DEFAULT)
         )
     }
     val open = PendingIntent.getActivity(context, 0,
@@ -153,9 +155,9 @@ private fun showAttentionNotification(context: Context, message: Int) {
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL)
         .setSmallIcon(R.drawable.ic_link)
-        .setContentTitle(context.getString(R.string.auto_backup_attention_title))
-        .setContentText(context.getString(message))
-        .setStyle(NotificationCompat.BigTextStyle().bigText(context.getString(message)))
+        .setContentTitle(localized.getString(R.string.auto_backup_attention_title))
+        .setContentText(localized.getString(message))
+        .setStyle(NotificationCompat.BigTextStyle().bigText(localized.getString(message)))
         .setContentIntent(open).setAutoCancel(true).setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
         .build()
     // Permission can be revoked between the check and notify; status remains visible in the app.

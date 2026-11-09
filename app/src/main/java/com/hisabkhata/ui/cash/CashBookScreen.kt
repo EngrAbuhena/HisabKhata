@@ -1,4 +1,6 @@
 package com.hisabkhata.ui.cash
+import com.hisabkhata.util.latinStringResource
+import com.hisabkhata.util.latinPluralResource
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
@@ -47,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -227,11 +228,11 @@ private fun CashSearchFilters(
     onClearDate: () -> Unit
 ) {
     val active = query.isNotBlank() || filter != DateFilter.All
-    val count = if (active) pluralStringResource(R.plurals.entries_shown, total, shown, total)
-        else pluralStringResource(R.plurals.entries_count, total, total)
+    val count = if (active) latinPluralResource(R.plurals.entries_shown, total, shown, total)
+        else latinPluralResource(R.plurals.entries_count, total, total)
     val monthLabel = if (filter is DateFilter.Month) {
         val months = stringArrayResource(R.array.short_month_names)
-        stringResource(R.string.filter_month_summary, months[filter.month - 1], filter.year)
+        latinStringResource(R.string.filter_month_summary, months[filter.month - 1], filter.year)
     } else stringResource(R.string.filter_month)
     val rangeLabel = if (filter is DateFilter.Range) {
         stringResource(R.string.filter_range_summary, Dates.display(filter.from), Dates.display(filter.through))

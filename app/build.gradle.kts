@@ -36,8 +36,8 @@ android {
         applicationId = "com.hisabkhata"
         minSdk = 24
         targetSdk = 35
-        versionCode = 6
-        versionName = "1.1.0"
+        versionCode = 7
+        versionName = "1.2.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -66,8 +66,7 @@ android {
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
-    // The calendar currently uses English even on devices with a different locale.
-    // Keep language resources in bundles so future translations can be added safely.
+    // Keep both language resources in bundles so in-app switching works offline.
     bundle { language { enableSplit = false } }
 }
 

@@ -178,6 +178,11 @@
     </string-array>
 
     <!-- Step 3: settings, transfers, backup and restore. -->
+    <string name="settings_language">Language</string>
+    <string name="language_english">English</string>
+    <string name="language_bengali">বাংলা</string>
+    <string name="language_system">Follow phone language</string>
+    <string name="language_system_help">Bengali is used when the phone language is Bengali; otherwise English is used.</string>
     <string name="settings_theme">Theme</string>
     <string name="theme_system">System default</string>
     <string name="theme_light">Light</string>
@@ -219,6 +224,8 @@
     <string name="export_filename_all_loans">All-Loan-Ledgers</string>
     <string name="export_combined_person_name">Person Name</string>
     <string name="export_combined_person_type">Person Type</string>
+    <string name="export_type_lent">LENT</string>
+    <string name="export_type_borrowed">BORROWED</string>
     <string name="export_cash_title">Cash Book</string>
     <string name="export_title_with_range">%1$s — %2$s</string>
     <string name="export_closing_balance">Closing balance</string>

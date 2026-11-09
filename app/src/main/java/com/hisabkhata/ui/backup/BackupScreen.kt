@@ -1,4 +1,5 @@
 package com.hisabkhata.ui.backup
+import com.hisabkhata.util.latinStringResource
 
 import android.Manifest
 import android.accounts.Account
@@ -230,7 +231,7 @@ fun BackupScreen(onBack: () -> Unit, onBackupDeleted: () -> Unit = {}, viewModel
     if (state.deleteTarget == null) state.candidate?.let { backup ->
         AlertDialog(onDismissRequest = viewModel::cancelRestore, title = { Text(stringResource(R.string.restore_title)) },
             text = { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.restore_details, backup.people.size, backup.loans.size, backup.cash.size))
+                Text(latinStringResource(R.string.restore_details, backup.people.size, backup.loans.size, backup.cash.size))
                 Text(stringResource(R.string.restore_warning), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                 Button(onClick = viewModel::requestReplace, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.restore_replace)) }
                 OutlinedButton(onClick = viewModel::restoreMerge, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.restore_merge)) }
@@ -243,7 +244,7 @@ fun BackupScreen(onBack: () -> Unit, onBackupDeleted: () -> Unit = {}, viewModel
             is BackupDeleteTarget.Drive -> stringResource(R.string.drive_delete_title)
         }
         val message = when (target) {
-            is BackupDeleteTarget.ReplaceDatabase -> stringResource(R.string.restore_replace_confirmation_message, target.people, target.loans, target.cash)
+            is BackupDeleteTarget.ReplaceDatabase -> latinStringResource(R.string.restore_replace_confirmation_message, target.people, target.loans, target.cash)
             is BackupDeleteTarget.Local -> stringResource(R.string.delete_local_backup_message, target.name)
             is BackupDeleteTarget.Drive -> stringResource(R.string.delete_combine_message,
                 stringResource(R.string.drive_delete_message, target.file.name), stringResource(R.string.delete_irreversible))

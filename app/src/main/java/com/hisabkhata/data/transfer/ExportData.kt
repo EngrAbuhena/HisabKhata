@@ -1,8 +1,10 @@
 package com.hisabkhata.data.transfer
+import com.hisabkhata.util.latinFormat
 
 import android.content.Context
 import com.hisabkhata.R
 import com.hisabkhata.data.local.entity.PersonEntity
+import com.hisabkhata.data.local.entity.PersonType
 import com.hisabkhata.domain.CashBalanceCalculator
 import com.hisabkhata.domain.CashMovement
 import com.hisabkhata.domain.LoanBalanceCalculator
@@ -74,7 +76,7 @@ class ExportData(private val context: Context, private val data: DatabaseBackup)
         val head = listOf(text(R.string.export_combined_person_name), text(R.string.export_combined_person_type)) +
             listOf(R.string.column_date, R.string.column_loan, R.string.column_paid, R.string.column_due, R.string.column_description).map(::text)
         val rows = allPersonTables().flatMap { (person, table) -> table.rows.map { row ->
-            listOf(person.name, person.type.name) + row.map { it.text }
+            listOf(person.name, text(if (person.type == PersonType.LENT) R.string.export_type_lent else R.string.export_type_borrowed)) + row.map { it.text }
         } }
         return CsvTableCodec.write(listOf(head) + rows)
     }
@@ -110,7 +112,7 @@ class ExportData(private val context: Context, private val data: DatabaseBackup)
 
     private fun uniqueSheetName(source: String, index: Int, used: MutableSet<String>): String {
         val cleaned = source.map { if (it in "[]:*?/\\" || it.isISOControl()) '_' else it }.joinToString("")
-            .trim().trim('\'').take(31).ifBlank { context.getString(R.string.export_sheet_person, index + 1).take(31) }
+            .trim().trim('\'').take(31).ifBlank { latinFormat(context, R.string.export_sheet_person, index + 1).take(31) }
         var candidate = cleaned; var suffix = 2
         while (!used.add(candidate.lowercase(Locale.ROOT))) {
             val tail = " (${suffix++})"

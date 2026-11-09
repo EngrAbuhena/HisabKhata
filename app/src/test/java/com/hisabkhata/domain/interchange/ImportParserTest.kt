@@ -10,6 +10,28 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 class ImportParserTest {
+    @Test fun bengaliHeadersDigitsAndLoanTypesImportAlongsideEnglish() {
+        val cashRows = listOf(
+            listOf("তারিখ", "জমা", "খরচ", "বিবরণ"),
+            listOf("৩০.১০.২০২৬", "১,২৩,৪৫৬.৭৮", "৫০", "বাংলা বিবরণ")
+        )
+        val cash = ImportParser.parse(ImportKind.CASH, CsvTableCodec.read(CsvTableCodec.write(cashRows))).lines.single().record!!
+        assertEquals(LocalDate.of(2026, 10, 30).toEpochDay(), cash.date)
+        assertEquals(12_345_678L, cash.first); assertEquals(5_000L, cash.second)
+        assertEquals("বাংলা বিবরণ", cash.description)
+
+        val decomposed = java.text.Normalizer.normalize("ব্যক্তির ধরন", java.text.Normalizer.Form.NFD)
+        val loanRows = listOf(
+            listOf("ব্যক্তির নাম", decomposed, "তারিখ", "ঋণ", "পরিশোধ", "বিবরণ"),
+            listOf("রাহিম", "আমি ধার নিয়েছি", "30.10.26", "500", "50", "পরীক্ষা")
+        )
+        val loan = ImportParser.parse(ImportKind.LOAN, CsvTableCodec.read(CsvTableCodec.write(loanRows))).lines.single().record!!
+        assertEquals(PersonType.BORROWED, loan.personType)
+        assertEquals("রাহিম", loan.personName)
+        assertEquals(50_000L, loan.first); assertEquals(5_000L, loan.second)
+        assertNull(ImportParser.parseDate(TableCell("৩১.০২.২০২৬")))
+    }
+
     private fun day(y: Int, m: Int, d: Int) = LocalDate.of(y, m, d).toEpochDay()
 
     @Test fun acceptsAllRequestedDateFormatsAndRejectsImpossibleDates() {

@@ -18,8 +18,13 @@ object MoneyInputParser {
     private val southAsianGrouped = Regex("[0-9]{1,2}(,[0-9]{2})*,[0-9]{3}")
     private val maxLong = BigInteger.valueOf(Long.MAX_VALUE)
 
+    /** Accept Bengali keyboard digits but display and store values using Latin digits. */
+    fun normalizeDigits(raw: String): String = buildString(raw.length) {
+        raw.forEach { c -> append(if (c in '০'..'৯') ('0' + (c - '০')) else c) }
+    }
+
     fun parse(raw: String): MoneyInputResult {
-        val input = raw.trim()
+        val input = normalizeDigits(raw.trim())
         if (input.isEmpty()) return MoneyInputResult.Empty
         if (input.count { it == '.' } > 1) return MoneyInputResult.Invalid
         val pieces = input.split('.', limit = 2)

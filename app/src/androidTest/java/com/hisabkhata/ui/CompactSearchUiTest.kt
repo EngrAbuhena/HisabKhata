@@ -26,6 +26,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
@@ -240,6 +241,39 @@ class CompactSearchUiTest {
         assertTrue("Add person cannot overlap search", addPerson.fetchSemanticsNode().boundsInRoot.bottom <= bounds("people_search").top)
         addPerson.performClick()
         assertTrue("Add person remains functional", addedPerson.get())
+    }
+
+    @Test fun mixedScriptCashSearchPreservesOriginalDescription() = runBlocking {
+        val original = "Rahim চালের হিসাব ০৭"
+        cash.addEntry(oct1, 12345, 0, original)
+        cash.addEntry(oct1 + 1, 500, 0, "Different entry")
+        val vm = CashBookViewModel(cash, loans)
+        compose.setContent { Sized(320.dp, 700.dp, 1f) { CashBookScreen({}, {}, {}, {}, vm) } }
+        compose.waitUntil(30_000) { !vm.uiState.value.isLoading && vm.uiState.value.totalCount == 2 }
+        compose.onNodeWithTag("cash_search").performTextInput("চালের")
+        compose.waitUntil(30_000) { vm.uiState.value.query == "চালের" && vm.uiState.value.rows.size == 1 }
+        assertEquals(original, vm.uiState.value.rows.single().entry.description)
+        compose.onNodeWithTag("cash_search").performTextClearance()
+        compose.onNodeWithTag("cash_search").performTextInput("rahim")
+        compose.waitUntil(30_000) { vm.uiState.value.query == "rahim" && vm.uiState.value.rows.size == 1 }
+        assertEquals(original, vm.uiState.value.rows.single().entry.description)
+        assertEquals(original, db.cashEntryDao().findAll().first { it.description == original }.description)
+    }
+
+    @Test fun mixedScriptPeopleSearchFindsBengaliAndEnglishNames() = runBlocking {
+        val original = "রাহিম Shop ০১"
+        loans.addPerson(original, "", "", PersonType.LENT)
+        loans.addPerson("Other Person", "", "", PersonType.BORROWED)
+        val vm = PeopleViewModel(loans)
+        compose.setContent { Sized(320.dp, 700.dp, 1f) { PeopleScreen({}, {}, vm) } }
+        compose.waitUntil(30_000) { !vm.uiState.value.isLoading && vm.uiState.value.totalCount == 2 }
+        compose.onNodeWithTag("people_search").performTextInput("রাহিম")
+        compose.waitUntil(30_000) { vm.currentQuery == "রাহিম" && vm.uiState.value.rows.size == 1 }
+        assertEquals(original, vm.uiState.value.rows.single().person.name)
+        compose.onNodeWithTag("people_search").performTextClearance()
+        compose.onNodeWithTag("people_search").performTextInput("shop")
+        compose.waitUntil(30_000) { vm.currentQuery == "shop" && vm.uiState.value.rows.size == 1 }
+        assertEquals(original, vm.uiState.value.rows.single().person.name)
     }
 
     @Test fun peopleSearchUsesCompactClearableFieldAndOneAccurateCount() = runBlocking {

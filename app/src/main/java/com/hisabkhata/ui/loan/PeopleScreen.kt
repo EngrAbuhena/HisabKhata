@@ -1,4 +1,5 @@
 package com.hisabkhata.ui.loan
+import com.hisabkhata.util.latinPluralResource
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,7 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
@@ -100,8 +100,8 @@ fun PeopleScreen(onAddPerson: () -> Unit, onOpenPerson: (Long) -> Unit, viewMode
                                     stringResource(R.string.search_people), Modifier.testTag("people_search"))
                                 Spacer(Modifier.height(8.dp))
                                 val count = if (query.isNotBlank()) {
-                                    pluralStringResource(R.plurals.people_shown, state.totalCount, state.rows.size, state.totalCount)
-                                } else pluralStringResource(R.plurals.people_count, state.totalCount, state.totalCount)
+                                    latinPluralResource(R.plurals.people_shown, state.totalCount, state.rows.size, state.totalCount)
+                                } else latinPluralResource(R.plurals.people_count, state.totalCount, state.totalCount)
                                 CompactResultCount(count, Modifier.testTag("people_status"))
                             }
                         }

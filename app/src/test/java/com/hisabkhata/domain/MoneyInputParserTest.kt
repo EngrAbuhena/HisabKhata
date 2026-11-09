@@ -5,6 +5,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class MoneyInputParserTest {
+    @Test fun bengaliDigitsAreAcceptedAndNormalizedWithoutRounding() {
+        assertEquals("12,345.67", MoneyInputParser.normalizeDigits("১২,৩৪৫.৬৭"))
+        assertEquals(MoneyInputResult.Amount(1_234_567L), MoneyInputParser.parse("১২,৩৪৫.৬৭"))
+        assertEquals(MoneyInputResult.Amount(50L), MoneyInputParser.parse(".৫০"))
+        assertEquals(MoneyInputResult.TooManyDecimals, MoneyInputParser.parse("১.২৩৪"))
+        assertEquals(MoneyInputResult.Invalid, MoneyInputParser.parse("১,২.৩"))
+    }
+
     @Test fun parsesWholeAndFractionalTakaExactly() {
         assertEquals(MoneyInputResult.Amount(5_000_000), MoneyInputParser.parse("50,000"))
         assertEquals(MoneyInputResult.Amount(5_000_025), MoneyInputParser.parse("50,000.25"))

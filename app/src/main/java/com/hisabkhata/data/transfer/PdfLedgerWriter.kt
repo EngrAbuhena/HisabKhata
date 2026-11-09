@@ -5,7 +5,9 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
+import android.icu.text.BreakIterator
 import java.io.ByteArrayOutputStream
+import java.util.Locale
 import kotlin.math.max
 
 /** Printable notebook-style ruled table. Long descriptions continue on additional pages. */
@@ -22,7 +24,7 @@ object PdfLedgerWriter {
         val fill = Paint().apply { color = Color.rgb(219, 238, 229) }
         var pageNo = 0; var page: PdfDocument.Page? = null; var canvas: Canvas? = null; var y = 0f
         fun drawTextClipped(c: Canvas, value: String, l: Float, r: Float, baseline: Float, alignRight: Boolean = false, paint: Paint = text) {
-            c.save(); c.clipRect(l + 2, baseline - 14, r - 2, baseline + 5)
+            c.save(); c.clipRect(l + 2, baseline - paint.textSize * 1.6f, r - 2, baseline + paint.textSize * 0.6f)
             val original = paint.textSize
             val maxWidth = r - l - 8
             if (paint.measureText(value) > maxWidth) paint.textSize = max(5f, original * maxWidth / paint.measureText(value))
@@ -50,7 +52,14 @@ object PdfLedgerWriter {
                 var rest = paragraph
                 if (rest.isEmpty()) lines += ""
                 while (rest.isNotEmpty()) {
-                    var count = text.breakText(rest, true, maxWidth, null).coerceAtLeast(1)
+                    val fit = text.breakText(rest, true, maxWidth, null).coerceAtLeast(1)
+                    // Never split a Bengali conjunct, combining sign, or other grapheme.
+                    // If one cluster exceeds the column, keep it whole and allow clipping.
+                    val breaks = BreakIterator.getCharacterInstance(Locale.forLanguageTag("bn-BD"))
+                    breaks.setText(rest)
+                    var count = if (fit >= rest.length || breaks.isBoundary(fit)) fit else {
+                        breaks.preceding(fit).takeIf { it > 0 } ?: breaks.following(fit).takeIf { it > 0 } ?: rest.length
+                    }
                     if (count < rest.length) {
                         val space = rest.lastIndexOf(' ', count - 1)
                         if (space > 0) count = space

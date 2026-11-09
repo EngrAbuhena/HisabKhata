@@ -16,7 +16,8 @@ and Google Play services.
   backup plus an opt-in daily backup around 11:45 p.m. device-local time.
 - Manual restore of a selected local JSON or Drive backup, with a backup list,
   last-backup times, merge, or explicitly confirmed replacement.
-- System, light and dark themes.
+- English and Bengali app languages, with a phone-language option; numbers are
+  displayed with 0–9 digits in both languages. System, light and dark themes.
 
 Automatic backup needs internet and may be delayed by Android; it is not an exact
 alarm or a substitute for testing a restore. A dedicated backup log and an app
@@ -33,7 +34,7 @@ publishing; do not commit screenshots of a real ledger or account.
 - JDK 17, Android SDK Platform 35 and Build-Tools 35.0.0.
 - Android Studio with Android Gradle Plugin 8.7.3 support, or the included Gradle
   8.9 wrapper. Dependency downloads require network access.
-- Package: `com.hisabkhata`; version: `1.1.0` (`versionCode` 6).
+- Package: `com.hisabkhata`; version: `1.2.0` (`versionCode` 7).
 
 ## Build and install
 
@@ -68,7 +69,7 @@ not installable or publishable until signed. Release builds enable R8 and resour
 shrinking. See [docs/RELEASING.md](docs/RELEASING.md) for secure signing, tests,
 GitHub secrets and tagging.
 
-The supplied v1.0.0 and v1.1.0 releases reuse the previous installed debug build's signing
+The supplied v1.0.0, v1.1.0 and v1.2.0 releases reuse the previous installed debug build's signing
 **key** so it can update that app without an uninstall. That key originated as an
 Android debug key; keep its private keystore secure. A separately supplied copy is
 protected with a new password, but that does not undo exposure of any earlier copy.
@@ -84,6 +85,25 @@ changing phones, uninstalling, restoring over data, or changing signing identity
 create and test a local JSON backup and keep it somewhere safe. Android automatic
 app backup is disabled. JSON, CSV, Excel and PDF files are not encrypted by the
 app; protect your files and Google account. See [PRIVACY.md](PRIVACY.md).
+
+## Language / ভাষা
+
+Open **Settings → Language** and choose **English**, **বাংলা**, or **Follow phone
+language**. The choice is saved and works offline. English remains the default for
+existing installations. The phone-language option uses Bengali when the phone's
+language is Bengali and English otherwise. System-owned screens such as the file
+picker and Google consent may use the phone's own language.
+
+Numbers and dates are displayed with 0–9 digits in both app languages. Amount fields
+also accept Bengali digits and normalize them to 0–9; amounts remain exact integer
+paisa. Existing names and descriptions are not translated. English and Bengali
+CSV/Excel import headings are recognized, while JSON backup keys and ledger data
+stay language-independent. Reports generated in Bengali use Bengali headings;
+existing English imports remain supported. When exporting CSV/Excel for an older
+app version, choose English first: older versions may not recognize Bengali headings.
+On Android 7 with very large system text, calendar weekday abbreviations may be cut
+off; full date accessibility labels remain available. On short landscape screens,
+scroll inside the calendar to reach all dates.
 
 ## Back up and restore
 

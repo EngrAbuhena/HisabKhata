@@ -1,5 +1,8 @@
 package com.hisabkhata.ui.settings
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -31,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hisabkhata.R
+import com.hisabkhata.data.settings.AppLanguage
 import com.hisabkhata.data.settings.AppPreferences
 import com.hisabkhata.data.settings.ThemeMode
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,16 +44,45 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(private val preferences: AppPreferences) : ViewModel() {
     val theme = preferences.theme
+    val language = preferences.language
     fun setTheme(mode: ThemeMode) = preferences.setTheme(mode)
+    fun setLanguage(language: AppLanguage) = preferences.setLanguage(language)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(onTransfer: () -> Unit, onBackup: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
     val mode by viewModel.theme.collectAsStateWithLifecycle()
+    val language by viewModel.language.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_settings)) }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Surface(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), shape = MaterialTheme.shapes.large) {
+                Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                    Text(stringResource(R.string.settings_language), style = MaterialTheme.typography.titleMedium)
+                    listOf(AppLanguage.ENGLISH, AppLanguage.BENGALI, AppLanguage.SYSTEM).forEach { option ->
+                        Row(Modifier.fillMaxWidth().heightIn(min = 50.dp).selectable(
+                            selected = language == option, role = Role.RadioButton,
+                            onClick = {
+                                if (language != option) {
+                                    viewModel.setLanguage(option)
+                                    context.findActivity()?.recreate()
+                                }
+                            }
+                        ), verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(selected = language == option, onClick = null)
+                            Text(stringResource(when (option) {
+                                AppLanguage.ENGLISH -> R.string.language_english
+                                AppLanguage.BENGALI -> R.string.language_bengali
+                                AppLanguage.SYSTEM -> R.string.language_system
+                            }), modifier = Modifier.padding(start = 12.dp))
+                        }
+                    }
+                    Text(stringResource(R.string.language_system_help), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
             Surface(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), shape = MaterialTheme.shapes.large) {
                 Column(Modifier.fillMaxWidth().padding(16.dp)) {
                     Text(stringResource(R.string.settings_theme), style = MaterialTheme.typography.titleMedium)
@@ -73,6 +107,12 @@ fun SettingsScreen(onTransfer: () -> Unit, onBackup: () -> Unit, viewModel: Sett
             }
         }
     }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> if (baseContext === this) null else baseContext.findActivity()
+    else -> null
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

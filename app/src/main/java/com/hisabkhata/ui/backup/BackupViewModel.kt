@@ -11,6 +11,7 @@ import com.hisabkhata.data.drive.AutomaticDriveBackupScheduler
 import com.hisabkhata.data.drive.DriveBackupFile
 import com.hisabkhata.data.drive.DriveBackupService
 import com.hisabkhata.data.drive.DriveUnauthorizedException
+import com.hisabkhata.data.settings.AppLocale
 import com.hisabkhata.data.settings.AppPreferences
 import com.hisabkhata.data.transfer.DataTransferRepository
 import com.hisabkhata.data.transfer.FileTransfer
@@ -174,7 +175,7 @@ class BackupViewModel @Inject constructor(
                             if (cursor.moveToFirst()) cursor.getString(0) else null
                         }
                     } catch (_: Exception) { null }
-                } ?: context.getString(R.string.local_backup_fallback_name)
+                } ?: AppLocale.context(context).getString(R.string.local_backup_fallback_name)
                 mutable.update { it.copy(busy = false, deleteTarget = BackupDeleteTarget.Local(uri, name)) }
             } catch (e: CancellationException) { throw e }
             catch (_: Exception) { mutable.update { it.copy(busy = false, problem = BackupProblem.INVALID) } }

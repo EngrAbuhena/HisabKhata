@@ -1,4 +1,5 @@
 package com.hisabkhata.ui.transfer
+import com.hisabkhata.util.latinStringResource
 
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -50,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hisabkhata.R
+import com.hisabkhata.data.local.entity.PersonType
 import com.hisabkhata.domain.MoneyFormatter
 import com.hisabkhata.domain.interchange.ImportIssue
 import com.hisabkhata.domain.interchange.ImportKind
@@ -118,7 +120,7 @@ fun ImportScreen(onBack: () -> Unit, viewModel: ImportViewModel = hiltViewModel(
             item(key = "controls") {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     val valid = preview.lines.count { it.record != null }; val errors = preview.lines.size - valid
-                    Text(stringResource(R.string.import_counts, valid, errors, preview.lines.count { it.duplicate }), style = MaterialTheme.typography.titleSmall)
+                    Text(latinStringResource(R.string.import_counts, valid, errors, preview.lines.count { it.duplicate }), style = MaterialTheme.typography.titleSmall)
                     TransferSwitch(R.string.import_skip_duplicates, R.string.import_skip_help, state.skipDuplicates, !state.busy, viewModel::setSkip)
                     if (preview.kind == ImportKind.LOAN) TransferSwitch(R.string.import_create_cash, R.string.import_create_cash_help, state.createCash, !state.busy, viewModel::setCreateCash)
                     state.problem?.let { Text(importProblem(it), color = MaterialTheme.colorScheme.error) }
@@ -131,7 +133,7 @@ fun ImportScreen(onBack: () -> Unit, viewModel: ImportViewModel = hiltViewModel(
     }
     state.result?.let { result ->
         AlertDialog(onDismissRequest = viewModel::dismissResult, title = { Text(stringResource(R.string.import_result_title)) },
-            text = { Text(stringResource(R.string.import_result_message, result.imported, result.duplicatesSkipped, result.errorRows, result.peopleCreated)) },
+            text = { Text(latinStringResource(R.string.import_result_message, result.imported, result.duplicatesSkipped, result.errorRows, result.peopleCreated)) },
             confirmButton = { TextButton(onClick = viewModel::dismissResult) { Text(stringResource(R.string.ok)) } })
     }
 }
@@ -158,7 +160,7 @@ private fun PreviewRow(line: ImportLine, kind: ImportKind) {
     Surface(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), shape = MaterialTheme.shapes.medium) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(stringResource(R.string.import_row_number, line.sourceRow), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                Text(latinStringResource(R.string.import_row_number, line.sourceRow), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                 Text(stringResource(when { line.record == null -> R.string.import_error_row; line.duplicate -> R.string.import_duplicate_row; else -> R.string.import_valid_row }),
                     color = if (line.record == null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.labelMedium)
@@ -166,7 +168,9 @@ private fun PreviewRow(line: ImportLine, kind: ImportKind) {
             val r = line.record
             val content = if (r == null) line.cells.joinToString("  |  ") else if (kind == ImportKind.CASH)
                 stringResource(R.string.import_cash_preview_row, Dates.display(r.date), MoneyFormatter.format(r.first), MoneyFormatter.format(r.second), r.description)
-            else stringResource(R.string.import_loan_preview_row, r.personName, r.personType?.name.orEmpty(), Dates.display(r.date), MoneyFormatter.format(r.first), MoneyFormatter.format(r.second), r.description)
+            else stringResource(R.string.import_loan_preview_row, r.personName,
+                stringResource(if (r.personType == PersonType.BORROWED) R.string.person_type_borrowed else R.string.person_type_lent),
+                Dates.display(r.date), MoneyFormatter.format(r.first), MoneyFormatter.format(r.second), r.description)
             Text(content, style = MaterialTheme.typography.bodySmall, maxLines = 5, overflow = TextOverflow.Ellipsis)
             line.issues.forEach { issue -> Text(stringResource(when (issue) {
                 ImportIssue.MISSING_PERSON -> R.string.import_person_required

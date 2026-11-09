@@ -1,4 +1,5 @@
 package com.hisabkhata.ui.loan
+import com.hisabkhata.util.latinPluralResource
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -44,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -159,7 +159,7 @@ fun PersonLedgerScreen(
         }
     }
     if (state.pendingDelete && person != null) {
-        val warning = pluralStringResource(R.plurals.delete_person_entries_warning, state.rows.size, state.rows.size)
+        val warning = latinPluralResource(R.plurals.delete_person_entries_warning, state.rows.size, state.rows.size)
         ConfirmDeleteDialog(title = stringResource(R.string.delete_person_title),
             message = stringResource(R.string.delete_person_details, person.name, warning),
             isBusy = state.isDeleting, onCancel = viewModel::cancelDelete, onConfirm = viewModel::confirmDelete)

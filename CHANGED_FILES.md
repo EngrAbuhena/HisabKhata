@@ -1,5 +1,17 @@
 # Changed files
 
+## v1.2.0: English and Bengali
+
+Added Bengali strings and a remembered language choice, with Latin digits in both
+languages. Amount input accepts Bengali digits. Bengali import headers and report
+headings are supported alongside the existing English ones. Calendar, notifications,
+PDF line wrapping and report contexts use the selected language. Added unit, Android
+and UI coverage for localization, exact numbers and interchange.
+
+Ledger records, database schema, JSON backup format, application ID and signing
+identity are unchanged. Google Drive remains opt-in and its live OAuth flow still
+requires separate owner testing. No key, password or user ledger was added.
+
 ## v1.1.0: automatic Drive backup
 
 Compared with v1.0.0, this update adds opt-in daily Google Drive backups and

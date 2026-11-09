@@ -86,10 +86,10 @@ class CashEntryEditorViewModel @Inject constructor(
 
     fun setDate(value: Long) { mutableState.update { it.copy(date = value, problem = null) } }
     fun setDeposit(value: String) {
-        if (value.length <= 100) mutableState.update { it.copy(deposit = value, depositError = null, amountRequired = false, problem = null) }
+        if (value.length <= 100) mutableState.update { it.copy(deposit = MoneyInputParser.normalizeDigits(value), depositError = null, amountRequired = false, problem = null) }
     }
     fun setCost(value: String) {
-        if (value.length <= 100) mutableState.update { it.copy(cost = value, costError = null, amountRequired = false, problem = null) }
+        if (value.length <= 100) mutableState.update { it.copy(cost = MoneyInputParser.normalizeDigits(value), costError = null, amountRequired = false, problem = null) }
     }
     fun setDescription(value: String) { mutableState.update { it.copy(description = value, problem = null) } }
 

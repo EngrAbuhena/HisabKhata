@@ -14,7 +14,9 @@ enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
 @Singleton
 class AppPreferences @Inject constructor(@ApplicationContext context: Context) : AutomaticBackupState {
-    private val prefs = context.getSharedPreferences("hisab_settings", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences(AppLocale.PREFERENCES, Context.MODE_PRIVATE)
+    private val mutableLanguage = MutableStateFlow(AppLocale.selected(context))
+    val language = mutableLanguage.asStateFlow()
     private val mutableTheme = MutableStateFlow(runCatching { ThemeMode.valueOf(prefs.getString("theme", "SYSTEM") ?: "SYSTEM") }.getOrDefault(ThemeMode.SYSTEM))
     val theme = mutableTheme.asStateFlow()
     private val mutableLocalBackup = MutableStateFlow(prefs.getLong("last_local_backup", 0L))
@@ -33,6 +35,11 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) :
     val lastAutomaticDriveBackup = mutableLastAutomatic.asStateFlow()
 
     fun setTheme(mode: ThemeMode) { prefs.edit().putString("theme", mode.name).apply(); mutableTheme.value = mode }
+    fun setLanguage(language: AppLanguage) {
+        // apply() updates in-memory preferences synchronously before the Activity is recreated.
+        prefs.edit().putString(AppLocale.LANGUAGE_KEY, language.name).apply()
+        mutableLanguage.value = language
+    }
     fun markLocalBackup(time: Long) { prefs.edit().putLong("last_local_backup", time).apply(); mutableLocalBackup.value = time }
     fun setDriveAccount(name: String?) {
         val changed = mutableDriveAccount.value != name

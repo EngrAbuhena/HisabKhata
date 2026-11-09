@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hisabkhata.R
 import com.hisabkhata.data.repository.LoanRepository
+import com.hisabkhata.data.settings.AppLocale
 import com.hisabkhata.data.transfer.DataTransferRepository
 import com.hisabkhata.data.transfer.ExportData
 import com.hisabkhata.data.transfer.ExportFormat
@@ -56,12 +57,13 @@ class ExportViewModel @Inject constructor(
             try {
                 val prepared = withContext(Dispatchers.IO) {
                     val snapshot = transfer.snapshot()
-                    val data = ExportData(context, snapshot)
+                    val localized = AppLocale.context(context)
+                    val data = ExportData(localized, snapshot)
                     val person = request.personId?.let { id -> snapshot.people.firstOrNull { it.id == id } }
                     val bytes = when (request.kind) {
                         ExportKind.CASH -> data.cash(request.from, request.through).let { table -> when (request.format) {
                             ExportFormat.CSV -> data.csv(table)
-                            ExportFormat.EXCEL -> data.excel(listOf(context.getString(R.string.nav_cash_book) to table))
+                            ExportFormat.EXCEL -> data.excel(listOf(localized.getString(R.string.nav_cash_book) to table))
                             ExportFormat.PDF -> PdfLedgerWriter.write(table)
                         } }
                         ExportKind.PERSON -> data.singlePerson(requireNotNull(person).id).let { table -> when (request.format) {
@@ -76,10 +78,10 @@ class ExportViewModel @Inject constructor(
                         }
                     }
                     val base = when (request.kind) {
-                        ExportKind.CASH -> context.getString(R.string.export_filename_cash)
-                        ExportKind.PERSON -> context.getString(R.string.export_filename_person, requireNotNull(person).name)
-                        ExportKind.ALL_LOANS -> context.getString(R.string.export_filename_all_loans)
-                    }.map { if (it.isLetterOrDigit() || it in "-_ .") it else '_' }.joinToString("").trim().take(70).ifBlank { context.getString(R.string.app_name) }
+                        ExportKind.CASH -> localized.getString(R.string.export_filename_cash)
+                        ExportKind.PERSON -> localized.getString(R.string.export_filename_person, requireNotNull(person).name)
+                        ExportKind.ALL_LOANS -> localized.getString(R.string.export_filename_all_loans)
+                    }.map { if (it.isLetterOrDigit() || it in "-_ .") it else '_' }.joinToString("").trim().take(70).ifBlank { localized.getString(R.string.app_name) }
                     val name = "$base.${request.format.extension}"
                     val dir = File(context.cacheDir, "exports").apply { mkdirs() }
                     dir.listFiles()?.filter { System.currentTimeMillis() - it.lastModified() > 3L * 24 * 60 * 60 * 1000 }?.forEach { it.delete() }

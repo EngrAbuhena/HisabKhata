@@ -89,10 +89,10 @@ class LoanEntryEditorViewModel @Inject constructor(
 
     fun setDate(value: Long) { mutableState.update { it.copy(date = value, problem = null) } }
     fun setLoan(value: String) {
-        if (value.length <= 100) mutableState.update { it.copy(loan = value, loanError = null, amountRequired = false, problem = null) }
+        if (value.length <= 100) mutableState.update { it.copy(loan = MoneyInputParser.normalizeDigits(value), loanError = null, amountRequired = false, problem = null) }
     }
     fun setPaid(value: String) {
-        if (value.length <= 100) mutableState.update { it.copy(paid = value, paidError = null, amountRequired = false, problem = null) }
+        if (value.length <= 100) mutableState.update { it.copy(paid = MoneyInputParser.normalizeDigits(value), paidError = null, amountRequired = false, problem = null) }
     }
     fun setDescription(value: String) { mutableState.update { it.copy(description = value, problem = null) } }
     fun setRecordInCash(value: Boolean) { mutableState.update { it.copy(recordInCash = value, problem = null) } }

@@ -230,8 +230,9 @@ class MobileLedgerUiTest {
             onEditPerson = {}, onAddEntry = {}, onEditEntry = { _, _ -> }, onExportPerson = {}, viewModel = vm) } }
         compose.waitUntil(30_000) { vm.uiState.value.person != null && vm.uiState.value.rows.size == 2 }
         compose.onNodeWithContentDescription(context.getString(R.string.delete_person)).performClick()
+        // The scrollable warning can merge into its parent semantics node.
         compose.onNodeWithText("All 2 entries of this person and their linked Cash Book entries will also be deleted. This cannot be undone.",
-            substring = true).assertExists()
+            substring = true, useUnmergedTree = true).assertExists()
         compose.onNodeWithText(context.getString(R.string.cancel)).performClick()
         assertNotNull(db.personDao().findById(person))
         assertNotNull(db.cashEntryDao().findById(firstCash))

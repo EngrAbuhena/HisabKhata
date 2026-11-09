@@ -7,6 +7,7 @@ import com.hisabkhata.data.local.entity.PersonType
 import com.hisabkhata.domain.MoneyInputParser
 import com.hisabkhata.domain.MoneyInputResult
 import java.math.BigDecimal
+import java.text.Normalizer
 import java.time.LocalDate
 import java.util.Locale
 
@@ -22,7 +23,27 @@ class MissingImportColumnsException : IllegalArgumentException()
 
 /** Detects headers instead of relying on column order. Existing Total/Due columns are ignored. */
 object ImportParser {
-    private fun normalized(s: String) = s.trim().lowercase(Locale.ROOT).filter { it.isLetterOrDigit() }
+    // Bengali vowel signs and viramas are combining marks, not letters: keep them
+    // so distinct headings remain distinct and canonically equivalent text matches.
+    private fun normalized(s: String) = Normalizer.normalize(s.trim(), Normalizer.Form.NFC)
+        .lowercase(Locale.ROOT).filter { c ->
+            c.isLetterOrDigit() || when (Character.getType(c)) {
+                Character.NON_SPACING_MARK.toInt(), Character.COMBINING_SPACING_MARK.toInt(),
+                Character.ENCLOSING_MARK.toInt() -> true
+                else -> false
+            }
+        }
+    private fun aliases(vararg names: String) = names.map(::normalized).toSet()
+    private val dateHeaders = aliases("date", "তারিখ")
+    private val depositHeaders = aliases("deposit", "জমা")
+    private val costHeaders = aliases("cost", "খরচ")
+    private val loanHeaders = aliases("loan", "ঋণ")
+    private val paidHeaders = aliases("paid", "পরিশোধ")
+    private val descriptionHeaders = aliases("description", "details", "note", "বিবরণ")
+    private val personNameHeaders = aliases("personname", "name", "ব্যক্তির নাম", "নাম")
+    private val personTypeHeaders = aliases("persontype", "type", "ব্যক্তির ধরন", "ধরন")
+    private val lentValues = aliases("lent", "ilent", "ধার দিয়েছি", "আমি ধার দিয়েছি")
+    private val borrowedValues = aliases("borrowed", "iborrowed", "ধার নিয়েছি", "আমি ধার নিয়েছি")
     private val dateA = Regex("(\\d{2})\\.(\\d{2})\\.(\\d{2})")
     private val dateB = Regex("(\\d{2})\\.(\\d{2})\\.(\\d{4})")
     private val dateC = Regex("(\\d{2})/(\\d{2})/(\\d{4})")
@@ -31,23 +52,27 @@ object ImportParser {
     fun parse(kind: ImportKind, table: ImportedTable): ImportPreview {
         val head = table.rows.take(20).firstOrNull { row ->
             val h = row.cells.map { normalized(it.text) }.toSet()
-            "date" in h && (if (kind == ImportKind.CASH) "deposit" in h || "cost" in h
-            else ("personname" in h || "name" in h) && ("persontype" in h || "type" in h) && ("loan" in h || "paid" in h))
+            fun has(options: Set<String>) = h.any { it in options }
+            has(dateHeaders) && (if (kind == ImportKind.CASH) has(depositHeaders) || has(costHeaders)
+            else has(personNameHeaders) && has(personTypeHeaders) && (has(loanHeaders) || has(paidHeaders)))
         } ?: throw MissingImportColumnsException()
         val headers = head.cells.map { normalized(it.text) }
-        fun index(vararg aliases: String): Int = headers.indexOfFirst { it in aliases }
-        val dateIndex = index("date"); val first = if (kind == ImportKind.CASH) index("deposit") else index("loan")
-        val second = if (kind == ImportKind.CASH) index("cost") else index("paid")
-        val description = index("description", "details", "note")
-        val name = index("personname", "name"); val type = index("persontype", "type")
+        fun index(options: Set<String>): Int = headers.indexOfFirst { it in options }
+        val dateIndex = index(dateHeaders); val first = if (kind == ImportKind.CASH) index(depositHeaders) else index(loanHeaders)
+        val second = if (kind == ImportKind.CASH) index(costHeaders) else index(paidHeaders)
+        val description = index(descriptionHeaders)
+        val name = index(personNameHeaders); val type = index(personTypeHeaders)
         fun cell(row: TableRow, i: Int) = if (i < 0) TableCell("") else row.cells.getOrNull(i) ?: TableCell("")
         val lines = table.rows.dropWhile { it !== head }.drop(1).map { row ->
             val problems = mutableListOf<ImportIssue>()
             val personName = if (kind == ImportKind.LOAN) cell(row, name).text.trim() else ""
-            val personType = if (kind == ImportKind.LOAN) when (normalized(cell(row, type).text)) {
-                "lent", "ilent" -> PersonType.LENT
-                "borrowed", "iborrowed" -> PersonType.BORROWED
-                else -> null
+            val personType = if (kind == ImportKind.LOAN) {
+                val value = normalized(cell(row, type).text)
+                when (value) {
+                    in lentValues -> PersonType.LENT
+                    in borrowedValues -> PersonType.BORROWED
+                    else -> null
+                }
             } else null
             if (kind == ImportKind.LOAN && personName.isBlank()) problems += ImportIssue.MISSING_PERSON
             if (kind == ImportKind.LOAN && personType == null) problems += ImportIssue.INVALID_PERSON_TYPE
@@ -64,7 +89,7 @@ object ImportParser {
     }
 
     fun parseDate(cell: TableCell, excel1904: Boolean = false): Long? {
-        val s = cell.text.trim()
+        val s = MoneyInputParser.normalizeDigits(cell.text.trim())
         try {
             val date = if (cell.excelNumber && s.isNotEmpty()) {
                 val number = BigDecimal(s)
