@@ -1,0 +1,60 @@
+ok  the auth trigger creates one profile per manually created account
+ok  a manually created account starts as an active user
+ok  a manually created account starts with no display name
+ok  role comes from app metadata and ignores user-controlled metadata
+ok  unknown app metadata role is rejected
+ok  a rejected account leaves no profile behind
+ok  the owner can grant SuperAdmin
+ok  the owner can grant Admin
+ok  a client cannot insert profiles
+ok  a client cannot update its own role
+ok  a client cannot delete profiles
+ok  an ordinary client sees no audit rows
+ok  internal helpers are not callable by clients
+ok  the owner-only role function is not callable by clients
+ok  the owner-only bootstrap is not callable by clients
+ok  clients cannot create objects in the public schema
+ok  the cancelled invitation table no longer exists
+ok  invitation creation no longer exists
+ok  invitation claiming no longer exists
+ok  a user sees exactly one profile row
+ok  an ordinary profile edit still works, proving the trigger is the blocker
+ok  a role change is refused by the guard trigger even with UPDATE granted
+ok  a status change is refused by the guard trigger even with UPDATE granted
+ok  anonymous callers cannot reach the account RPCs
+ok  anonymous callers cannot read profiles
+ok  the account RPC rejects callers without a token
+ok  a manually created, verified account is immediately usable
+ok  an unverified account is reported as unverified
+ok  a display name is trimmed and stored
+ok  a blank display name is rejected
+ok  an over-long display name is rejected
+ok  a display name with control characters is rejected
+ok  an admin cannot disable accounts
+ok  a user cannot disable accounts
+ok  the super administrator cannot disable itself
+ok  a super administrator account cannot be disabled
+ok  an unknown account reports not found
+ok  a null status is rejected
+ok  disabling records who did it and when
+ok  a disabled account keeps its profile and data
+ok  a disabled account can still learn that it is disabled
+ok  a disabled account cannot change its profile
+ok  re-enabling restores active status and clears the disable trail
+ok  a disabled admin can no longer write
+ok  a disabled admin sees its own disabled status
+ok  anonymous callers cannot read the audit trail
+ok  a user cannot see another account
+ok  a user sees no audit trail
+ok  an admin cannot see the super administrator
+ok  an admin can see ordinary accounts
+ok  an admin sees no audit trail
+ok  the super administrator sees every account
+ok  the super administrator sees the audit trail
+ok  owner role changes are audited
+ok  the first SuperAdmin bootstrap is audited
+ok  a role assigned by the owner persists across calls
+ok  the invitation table is gone
+ok  the invitation functions are gone
+ok  the activation columns are gone
+ALL ACCOUNTS FOUNDATION TESTS PASSED

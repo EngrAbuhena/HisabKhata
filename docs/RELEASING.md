@@ -1,5 +1,13 @@
 # Releasing Hisab Khata
 
+> **Before releasing v1.3.0:** apply `backend/supabase/migrations/` to the target
+> Supabase project (all seven, in order), confirm `disable_signup` is still
+> `true`, and create the first SuperAdmin with
+> `docs/project/HisabKhata-Manual-Account-Runbook.md`. The app's `BuildConfig`
+> defaults point at the staging project; pass `-PsupabaseUrl=` and
+> `-PsupabasePublishableKey=` for any other project. Only the publishable key may
+> be used in a build.
+
 ## Protect the existing key first
 
 The v1.0.0 artifact was signed with the **same private key** as the previous debug

@@ -1,9 +1,12 @@
 # Hisab Khata
 
 Hisab Khata is an Android Cash Book and Loan Ledger for recording deposits,
-costs, money lent and money borrowed. Ledger work is local and works offline;
-Google Drive backup is optional and requires a Google account, internet access
-and Google Play services.
+costs, money lent and money borrowed. Ledger work is local and works offline.
+
+Version 1.3.0 adds accounts: the app asks you to sign in at launch, keeps each
+account's ledger private to that account in the cloud, and syncs changes made
+elsewhere. Google Drive backup remains optional and requires a Google account,
+internet access and Google Play services.
 
 ## Features
 
@@ -18,6 +21,13 @@ and Google Play services.
   last-backup times, merge, or explicitly confirmed replacement.
 - English and Bengali app languages, with a phone-language option; numbers are
   displayed with 0–9 digits in both languages. System, light and dark themes.
+- **Accounts (1.3.0):** sign in with an account created for you by the owner,
+  with no self sign-up. Each account has its own private ledger; private data is
+  never shared with other accounts, admins or the SuperAdmin.
+- **Cloud sync (1.3.0):** changes are saved on the device first and uploaded
+  when a connection is available. Settings shows *Saved locally, waiting to
+  sync*, *All changes are synced* or *Action needed* when a change conflicts with
+  another device. A conflict is never resolved by silently overwriting data.
 
 Automatic backup needs internet and may be delayed by Android; it is not an exact
 alarm or a substitute for testing a restore. A dedicated backup log and an app
@@ -34,7 +44,10 @@ publishing; do not commit screenshots of a real ledger or account.
 - JDK 17, Android SDK Platform 35 and Build-Tools 35.0.0.
 - Android Studio with Android Gradle Plugin 8.7.3 support, or the included Gradle
   8.9 wrapper. Dependency downloads require network access.
-- Package: `com.hisabkhata`; version: `1.2.0` (`versionCode` 7).
+- Package: `com.hisabkhata`; version: `1.3.0` (`versionCode` 8).
+- A Supabase project for accounts and sync. The client URL and **publishable**
+  key are compiled into `BuildConfig`; the secret/service-role key must never be
+  added to the app or this repository.
 
 ## Build and install
 
@@ -46,6 +59,20 @@ From the project root:
 # Optional: run Android tests on a connected device/emulator
 ./gradlew connectedDebugAndroidTest
 ```
+
+The Supabase endpoint defaults to the project configured in `app/build.gradle.kts`.
+Override it without editing files (useful for a separate test project):
+
+```sh
+./gradlew assembleDebug -PsupabaseUrl=https://YOUR-PROJECT.supabase.co \
+                        -PsupabasePublishableKey=sb_publishable_...
+# or: SUPABASE_URL=... SUPABASE_PUBLISHABLE_KEY=... ./gradlew assembleDebug
+```
+
+The publishable key is a client key and is safe to ship: it maps to the `anon`
+and `authenticated` roles, and every table is protected by owner-only Row Level
+Security. Never put the `service_role`/secret key in the app, this repository or
+a workflow file.
 
 On Windows use `gradlew.bat`. The debug APK is at
 `app/build/outputs/apk/debug/app-debug.apk`. Install an APK from a trusted source
@@ -77,6 +104,40 @@ protected with a new password, but that does not undo exposure of any earlier co
 says Google Play does not accept apps signed with a debug certificate. A different
 release key cannot update this installed app without a supported migration. Back up
 user data and plan a secure signing/installation transition before publishing.
+
+## Accounts and cloud sync (1.3.0)
+
+Accounts are created by the owner in the Supabase dashboard; self sign-up is
+disabled on the server and the app has no registration screen. Sign-in is
+required at launch, and the session is deliberately not stored on disk, so a
+shared phone does not reopen the previous account's ledger.
+
+How sync behaves:
+
+- **Local first.** Every change is written to the on-device database and queued in
+  the same transaction, so a saved row is never left without its outgoing change.
+- **Retry safe.** Each row carries a stable `client_id`, and uploads are
+  `(owner_id, client_id)` upserts, so a retry after a lost response cannot create a
+  duplicate. Repeated edits collapse into one queued change.
+- **Account scoped.** A queued change records the account that created it and is
+  only ever sent for that account. Signing out warns about unsynced work and never
+  discards it; it uploads the next time that account signs in.
+- **Conflicts.** Updates are conditional on the server version last seen. If
+  another device changed the row, nothing is overwritten: the change stays queued
+  and Settings shows **Action needed**.
+- **Linked loan/cash pairs** are joined by one atomic server call
+  (`link_ledger_entries`), because each Supabase REST request is its own
+  transaction and a linked pair cannot be written in two requests.
+- **Pull.** After uploading, the app downloads this account's rows and matches
+  them by `client_id`, so a fresh install or a second device shows the same
+  ledger. Rows with unsent local changes are never replaced by older cloud copies.
+
+The ledger tables in the on-device database are unchanged by this update: the
+database upgrade only adds two sync tables, so existing records, amounts and
+linked entries keep their values. Take a local JSON backup before upgrading.
+
+Sync is not encryption: whoever controls the Supabase project can read the
+database. It is also not a backup plan — see **Backup warning**.
 
 ## Backup warning
 
@@ -137,21 +198,33 @@ in [docs/GOOGLE_SETUP.md](docs/GOOGLE_SETUP.md). Live Google authorization and D
 operations require your own Google Cloud setup and have not been verified in this
 workspace.
 
+## Backend (accounts and sync schema)
+
+`backend/` holds the Supabase schema, policies and tests for accounts, private
+ledgers, notes and atomic linking, plus a README with the exact client contract.
+Run its suites with:
+
+```bash
+cd backend && ./scripts/run_local_accounts_tests.sh   # needs PostgreSQL 17
+```
+
 ## Project structure
 
 ```text
 app/src/main/java/com/hisabkhata/
-  data/                 Room, repositories, transfer, preferences, Drive REST
-  domain/               Ledger calculations and backup/import codecs
+  data/                 Room, repositories, cloud/sync, transfer, preferences, Drive REST
+  domain/               Ledger calculations, sync engine and backup/import codecs
   ui/                   Compose screens, components, navigation and theme
 app/src/main/assets/samples/  Fictional CSV and XLSX import examples
 app/src/main/res/             Strings and Android resources
 app/src/test/                 JVM tests
 app/src/androidTest/          Android/Room and UI tests for debug builds
-app/schemas/                  Exported Room schema
+app/schemas/                  Exported Room schemas (1 and 2)
 scripts/release-smoke/        Standalone minified-release device probe
 .github/workflows/            CI and signed tag-release workflows
+backend/                      Supabase migrations, policies and tests (see backend/README.md)
 docs/                         Release and Google OAuth checklists
+docs/project/                 Implementation plan, foundation report and account runbook
 ```
 
 Very large monetary values may be horizontally compressed on narrow screens at

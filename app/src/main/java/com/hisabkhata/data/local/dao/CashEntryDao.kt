@@ -60,6 +60,21 @@ interface CashEntryDao {
     """)
     suspend fun deleteLinkedToPerson(personId: Long): Int
 
+    /**
+     * Applies a row pulled from the cloud. Unlike [updateUnlinked] this also writes
+     * the link columns, because the link was already validated server-side.
+     */
+    @Query("""
+        UPDATE cash_entries
+        SET date = :date, deposit = :deposit, cost = :cost, description = :description,
+            createdAt = :createdAt, linkedLoanEntryId = :linkedLoanEntryId
+        WHERE id = :id
+    """)
+    suspend fun applyPulled(
+        id: Long, date: Long, deposit: Long, cost: Long, description: String,
+        createdAt: Long, linkedLoanEntryId: Long?
+    ): Int
+
     // Both link IDs are set together by the loan synchronization transaction.
     @Query("UPDATE cash_entries SET linkedLoanEntryId = :loanEntryId WHERE id = :cashEntryId")
     suspend fun setLoanLink(cashEntryId: Long, loanEntryId: Long?): Int

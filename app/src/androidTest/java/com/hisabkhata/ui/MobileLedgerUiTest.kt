@@ -40,6 +40,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.hisabkhata.R
 import com.hisabkhata.data.local.HisabDatabase
+import com.hisabkhata.data.sync.RoomSyncStore
+import com.hisabkhata.data.cloud.TestCloudSession
 import com.hisabkhata.data.local.entity.CashEntryEntity
 import com.hisabkhata.data.local.entity.PersonType
 import com.hisabkhata.data.repository.CashRepository
@@ -70,14 +72,19 @@ class MobileLedgerUiTest {
     @get:Rule val compose = createComposeRule()
     private lateinit var context: Context
     private lateinit var db: HisabDatabase
+    private lateinit var syncStore: RoomSyncStore
+    private lateinit var session: TestCloudSession
     private lateinit var loans: LoanRepository
     private lateinit var cash: CashRepository
 
     @Before fun setUp() {
         context = ApplicationProvider.getApplicationContext()
         db = Room.inMemoryDatabaseBuilder(context, HisabDatabase::class.java).build()
-        loans = LoanRepository(db, context)
-        cash = CashRepository(db.cashEntryDao())
+        // These UI tests run signed out: rows save locally and queue nothing.
+        syncStore = RoomSyncStore(db)
+        session = TestCloudSession()
+        loans = LoanRepository(db, syncStore, session, context)
+        cash = CashRepository(db.cashEntryDao(), syncStore, session)
     }
     @After fun tearDown() { db.close() }
 

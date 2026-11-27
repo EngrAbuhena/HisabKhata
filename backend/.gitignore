@@ -1,0 +1,12 @@
+# Local test and tooling output. The recorded evidence in artifacts/ IS committed.
+*.log
+!artifacts/*.log
+*.pid
+/tmp/
+.DS_Store
+
+# Never commit credentials or local Supabase state.
+.env
+.env.*
+.supabase/
+*.secrets

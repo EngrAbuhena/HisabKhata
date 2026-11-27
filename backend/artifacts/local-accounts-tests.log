@@ -1,0 +1,355 @@
+--- 10_accounts_roles_invitations_test.sql ---
+psql:<stdin>:93: NOTICE:  ok  the auth trigger creates one profile per manually created account
+
+psql:<stdin>:96: NOTICE:  ok  a manually created account starts as an active user
+
+psql:<stdin>:99: NOTICE:  ok  a manually created account starts with no display name
+
+psql:<stdin>:108: NOTICE:  ok  role comes from app metadata and ignores user-controlled metadata
+
+psql:<stdin>:126: NOTICE:  ok  unknown app metadata role is rejected
+psql:<stdin>:130: NOTICE:  ok  a rejected account leaves no profile behind
+
+
+
+
+
+psql:<stdin>:141: NOTICE:  ok  the owner can grant SuperAdmin
+
+psql:<stdin>:144: NOTICE:  ok  the owner can grant Admin
+
+
+psql:<stdin>:152: NOTICE:  ok  a client cannot insert profiles
+
+psql:<stdin>:155: NOTICE:  ok  a client cannot update its own role
+
+psql:<stdin>:158: NOTICE:  ok  a client cannot delete profiles
+
+psql:<stdin>:161: NOTICE:  ok  an ordinary client sees no audit rows
+
+psql:<stdin>:163: NOTICE:  ok  internal helpers are not callable by clients
+
+psql:<stdin>:165: NOTICE:  ok  the owner-only role function is not callable by clients
+
+psql:<stdin>:167: NOTICE:  ok  the owner-only bootstrap is not callable by clients
+
+psql:<stdin>:169: NOTICE:  ok  clients cannot create objects in the public schema
+
+psql:<stdin>:171: NOTICE:  ok  the cancelled invitation table no longer exists
+
+psql:<stdin>:175: NOTICE:  ok  invitation creation no longer exists
+
+psql:<stdin>:177: NOTICE:  ok  invitation claiming no longer exists
+
+psql:<stdin>:180: NOTICE:  ok  a user sees exactly one profile row
+
+psql:<stdin>:194: NOTICE:  ok  an ordinary profile edit still works, proving the trigger is the blocker
+
+psql:<stdin>:197: NOTICE:  ok  a role change is refused by the guard trigger even with UPDATE granted
+
+psql:<stdin>:200: NOTICE:  ok  a status change is refused by the guard trigger even with UPDATE granted
+
+psql:<stdin>:209: NOTICE:  ok  anonymous callers cannot reach the account RPCs
+
+psql:<stdin>:211: NOTICE:  ok  anonymous callers cannot read profiles
+
+
+psql:<stdin>:216: NOTICE:  ok  the account RPC rejects callers without a token
+
+
+psql:<stdin>:223: NOTICE:  ok  a manually created, verified account is immediately usable
+
+
+psql:<stdin>:227: NOTICE:  ok  an unverified account is reported as unverified
+
+
+
+psql:<stdin>:232: NOTICE:  ok  a display name is trimmed and stored
+
+psql:<stdin>:234: NOTICE:  ok  a blank display name is rejected
+
+psql:<stdin>:236: NOTICE:  ok  an over-long display name is rejected
+
+psql:<stdin>:238: NOTICE:  ok  a display name with control characters is rejected
+
+
+psql:<stdin>:248: NOTICE:  ok  an admin cannot disable accounts
+
+
+psql:<stdin>:254: NOTICE:  ok  a user cannot disable accounts
+
+
+psql:<stdin>:260: NOTICE:  ok  the super administrator cannot disable itself
+
+psql:<stdin>:264: NOTICE:  ok  a super administrator account cannot be disabled
+
+psql:<stdin>:268: NOTICE:  ok  an unknown account reports not found
+
+psql:<stdin>:272: NOTICE:  ok  a null status is rejected
+
+
+psql:<stdin>:280: NOTICE:  ok  disabling records who did it and when
+
+psql:<stdin>:284: NOTICE:  ok  a disabled account keeps its profile and data
+
+
+psql:<stdin>:290: NOTICE:  ok  a disabled account can still learn that it is disabled
+
+psql:<stdin>:292: NOTICE:  ok  a disabled account cannot change its profile
+
+
+
+psql:<stdin>:302: NOTICE:  ok  re-enabling restores active status and clears the disable trail
+
+
+
+
+psql:<stdin>:312: NOTICE:  ok  a disabled admin can no longer write
+
+psql:<stdin>:314: NOTICE:  ok  a disabled admin sees its own disabled status
+
+
+
+psql:<stdin>:324: NOTICE:  ok  anonymous callers cannot read the audit trail
+
+
+psql:<stdin>:332: NOTICE:  ok  a user cannot see another account
+
+psql:<stdin>:334: NOTICE:  ok  a user sees no audit trail
+
+
+psql:<stdin>:340: NOTICE:  ok  an admin cannot see the super administrator
+
+psql:<stdin>:344: NOTICE:  ok  an admin can see ordinary accounts
+
+psql:<stdin>:346: NOTICE:  ok  an admin sees no audit trail
+
+
+psql:<stdin>:350: NOTICE:  ok  the super administrator sees every account
+
+psql:<stdin>:352: NOTICE:  ok  the super administrator sees the audit trail
+
+psql:<stdin>:355: NOTICE:  ok  owner role changes are audited
+
+psql:<stdin>:360: NOTICE:  ok  the first SuperAdmin bootstrap is audited
+
+
+psql:<stdin>:367: NOTICE:  ok  a role assigned by the owner persists across calls
+
+psql:<stdin>:374: NOTICE:  ok  the invitation table is gone
+
+psql:<stdin>:378: NOTICE:  ok  the invitation functions are gone
+
+psql:<stdin>:383: NOTICE:  ok  the activation columns are gone
+
+
+ALL ACCOUNTS FOUNDATION TESTS PASSED
+--- 20_private_ledgers_test.sql ---
+
+
+psql:<stdin>:93: NOTICE:  ok  the owner is taken from the token, not the request
+
+psql:<stdin>:97: NOTICE:  ok  a person round-trips with name, phone and type
+
+psql:<stdin>:110: NOTICE:  ok  a loan amount is stored as an exact bigint paisa value
+
+psql:<stdin>:114: NOTICE:  ok  epoch-day date and epoch-millisecond created time are preserved
+
+
+psql:<stdin>:119: NOTICE:  ok  another account sees none of the first account's people
+
+psql:<stdin>:121: NOTICE:  ok  another account sees none of the first account's loans
+
+psql:<stdin>:123: NOTICE:  ok  another account sees none of the first account's cash rows
+
+
+psql:<stdin>:128: NOTICE:  ok  the SuperAdmin cannot read another account's people
+
+psql:<stdin>:130: NOTICE:  ok  the SuperAdmin cannot read another account's loans
+
+psql:<stdin>:132: NOTICE:  ok  the SuperAdmin cannot read another account's cash rows
+
+psql:<stdin>:138: NOTICE:  ok  a known ledger id is invisible to the SuperAdmin
+
+psql:<stdin>:144: NOTICE:  ok  a client cannot create a person owned by somebody else
+
+psql:<stdin>:150: NOTICE:  ok  a client cannot insert a loan into another account's ledger
+
+psql:<stdin>:174: NOTICE:  ok  a client cannot update another account's person
+psql:<stdin>:174: NOTICE:  ok  a client cannot delete another account's loan
+psql:<stdin>:179: NOTICE:  ok  the target row is untouched after the blocked attempts
+
+psql:<stdin>:183: NOTICE:  ok  the loan still exists after the blocked delete
+
+
+
+psql:<stdin>:193: NOTICE:  ok  a row cannot be re-pointed at another account
+
+psql:<stdin>:199: NOTICE:  ok  a loan cannot be re-pointed at another account
+
+psql:<stdin>:220: NOTICE:  ok  a symmetric cash/loan link is stored and readable
+
+psql:<stdin>:227: NOTICE:  ok  deleting the cash row clears the loan's pointer
+
+psql:<stdin>:232: NOTICE:  ok  a blank person name is rejected
+
+psql:<stdin>:235: NOTICE:  ok  an untrimmed person name is rejected
+
+psql:<stdin>:238: NOTICE:  ok  an over-long person name is rejected
+
+psql:<stdin>:243: NOTICE:  ok  a negative loan amount is rejected
+
+psql:<stdin>:247: NOTICE:  ok  a loan row with no money at all is rejected
+
+psql:<stdin>:251: NOTICE:  ok  an out-of-range epoch day is rejected
+
+psql:<stdin>:254: NOTICE:  ok  a negative cash amount is rejected
+
+psql:<stdin>:260: NOTICE:  ok  a replayed client id cannot create a duplicate person
+
+psql:<stdin>:264: NOTICE:  ok  exactly one person exists for that client id
+
+
+psql:<stdin>:271: NOTICE:  ok  a disabled account reads no ledger rows
+
+psql:<stdin>:274: NOTICE:  ok  a disabled account cannot insert a person
+
+psql:<stdin>:277: NOTICE:  ok  a disabled account cannot insert a cash row
+
+
+psql:<stdin>:284: NOTICE:  ok  the SuperAdmin can keep its own ledger
+
+psql:<stdin>:287: NOTICE:  ok  the SuperAdmin sees only its own ledger, never the other accounts'
+
+psql:<stdin>:295: NOTICE:  ok  no stored link crosses two accounts
+
+
+
+psql:<stdin>:315: NOTICE:  ok  a link into another account's ledger is refused
+
+psql:<stdin>:320: NOTICE:  ok  the other account's cash row was not re-pointed
+
+
+psql:<stdin>:328: NOTICE:  ok  an anonymous caller cannot read ledgers
+
+psql:<stdin>:330: NOTICE:  ok  an anonymous caller cannot read loans
+
+psql:<stdin>:332: NOTICE:  ok  an anonymous caller cannot read cash rows
+
+
+ALL PRIVATE LEDGER TESTS PASSED
+--- 30_notes_test.sql ---
+
+
+psql:<stdin>:90: NOTICE:  ok  a new note is private and hides its author by default
+
+psql:<stdin>:94: NOTICE:  ok  title, body and pin round-trip
+
+psql:<stdin>:98: NOTICE:  ok  author identity is not a selectable column
+
+psql:<stdin>:103: NOTICE:  ok  a private note cannot opt in to showing its author
+
+psql:<stdin>:108: NOTICE:  ok  a completely empty note is refused
+
+psql:<stdin>:111: NOTICE:  ok  an over-long title is refused
+
+
+psql:<stdin>:116: NOTICE:  ok  a private note is invisible to another account
+
+psql:<stdin>:120: NOTICE:  ok  a known private note id is invisible too
+
+psql:<stdin>:122: NOTICE:  ok  the feed hides private notes
+
+
+
+psql:<stdin>:135: NOTICE:  ok  a public note is readable by another signed-in account
+
+psql:<stdin>:140: NOTICE:  ok  a public note with the author shown carries the display name
+
+psql:<stdin>:163: NOTICE:  ok  a reader cannot edit a public note
+psql:<stdin>:163: NOTICE:  ok  a reader cannot delete a public note
+psql:<stdin>:168: NOTICE:  ok  the public note is untouched
+
+psql:<stdin>:183: NOTICE:  ok  nobody else can publish a private note
+psql:<stdin>:187: NOTICE:  ok  a note cannot be created in another account's name
+
+
+
+psql:<stdin>:202: NOTICE:  ok  a hidden author is not named in the feed
+
+psql:<stdin>:211: NOTICE:  ok  the feed exposes no author identifier column
+
+
+psql:<stdin>:223: NOTICE:  ok  the SuperAdmin note did record the show-author flag
+
+
+psql:<stdin>:230: NOTICE:  ok  a SuperAdmin author is never named, even with show_author set
+
+
+psql:<stdin>:237: NOTICE:  ok  the SuperAdmin author is hidden from itself in the feed as well
+
+
+psql:<stdin>:248: NOTICE:  ok  a title search finds the matching note only
+
+psql:<stdin>:252: NOTICE:  ok  a body search finds the matching note only
+
+psql:<stdin>:257: NOTICE:  ok  the author sees its own notes plus other authors' public notes
+
+psql:<stdin>:261: NOTICE:  ok  public notes from all authors are visible
+
+psql:<stdin>:269: NOTICE:  ok  the feed can be ordered pinned-first then newest
+
+psql:<stdin>:277: NOTICE:  ok  a deleted note is kept with a deletion timestamp (undo possible)
+
+psql:<stdin>:283: NOTICE:  ok  undo restores the note
+
+
+
+psql:<stdin>:293: NOTICE:  ok  a deleted public note leaves the feed
+
+
+psql:<stdin>:300: NOTICE:  ok  a disabled account reads no notes
+
+psql:<stdin>:302: NOTICE:  ok  a disabled account reads no feed
+
+psql:<stdin>:305: NOTICE:  ok  a disabled account cannot write a note
+
+psql:<stdin>:309: NOTICE:  ok  an anonymous caller cannot read notes
+
+psql:<stdin>:311: NOTICE:  ok  an anonymous caller cannot read the feed
+
+
+ALL NOTES TESTS PASSED
+--- 40_atomic_link_test.sql ---
+
+psql:<stdin>:96: NOTICE:  ok  the pair starts unlinked when written as two separate rows
+
+psql:<stdin>:102: NOTICE:  ok  the link call succeeds in one statement
+
+psql:<stdin>:109: NOTICE:  ok  both directions of the link are stored
+
+psql:<stdin>:116: NOTICE:  ok  linking never changes an amount
+
+(e0000000-0000-4000-8000-0000000000a1,f0000000-0000-4000-8000-0000000000a1)
+psql:<stdin>:127: NOTICE:  ok  a retried link is idempotent
+
+(e0000000-0000-4000-8000-0000000000a1,f0000000-0000-4000-8000-0000000000a1)
+psql:<stdin>:137: NOTICE:  ok  unlinking clears both pointers
+
+psql:<stdin>:144: NOTICE:  ok  an unlinked cash row can be removed on its own
+
+
+
+psql:<stdin>:168: NOTICE:  ok  a link into another account's ledger is refused
+
+psql:<stdin>:174: NOTICE:  ok  another account's loan is invisible to the caller
+
+psql:<stdin>:180: NOTICE:  ok  the other account's cash row was not re-pointed
+
+
+anon
+{"role":"anon"}
+psql:<stdin>:193: NOTICE:  ok  an anonymous caller cannot call the link function
+
+
+ALL ATOMIC LINK TESTS PASSED

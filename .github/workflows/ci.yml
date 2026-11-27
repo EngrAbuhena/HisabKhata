@@ -22,6 +22,8 @@ jobs:
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - name: Check Bengali translations
         run: python3 scripts/check_translations.py
+      - name: Check for leaked Supabase secrets
+        run: python3 scripts/check_secrets.py
       - name: Unit tests, lint and debug APK
         run: ./gradlew --no-daemon testDebugUnitTest lint assembleDebug
       - name: Upload debug APK
