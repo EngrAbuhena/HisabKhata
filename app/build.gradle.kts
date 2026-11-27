@@ -4,6 +4,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.kapt")
+    id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.dagger.hilt.android")
 }
 
@@ -36,8 +37,22 @@ android {
         applicationId = "com.hisabkhata"
         minSdk = 24
         targetSdk = 35
-        versionCode = 7
-        versionName = "1.2.0"
+        versionCode = 8
+        versionName = "1.3.0"
+
+        // Public Supabase endpoint. The publishable key is a client key, safe to ship:
+        // it only grants the `anon`/`authenticated` roles, and every table is protected
+        // by owner-only RLS. The secret/service-role key must never be added here.
+        // Override with -PsupabaseUrl=... / -PsupabasePublishableKey=... or the
+        // SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY environment variables.
+        val supabaseUrl = (project.findProperty("supabaseUrl") as String?)
+            ?: System.getenv("SUPABASE_URL")
+            ?: "https://pghgdvqadmrdbqkewllv.supabase.co"
+        val supabaseKey = (project.findProperty("supabasePublishableKey") as String?)
+            ?: System.getenv("SUPABASE_PUBLISHABLE_KEY")
+            ?: "sb_publishable_cizpUujHfo-oJ8zG3UqMfg_BiYUhoL6"
+        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
+        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"$supabaseKey\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -63,11 +78,13 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     // Keep both language resources in bundles so in-app switching works offline.
     bundle { language { enableSplit = false } }
+    // Export the schemas next to the app module where the test helper and reviews expect them.
+    sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
 }
 
 kapt {
@@ -97,6 +114,17 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-compiler:2.51.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
+    // Cloud accounts + sync. supabase-kt 2.2.3 is the newest release compiled
+    // against Kotlin 1.9.x; newer lines require Kotlin 2.x.
+    val supabaseBom = platform("io.github.jan-tennert.supabase:bom:2.2.3")
+    implementation(supabaseBom)
+    implementation("io.github.jan-tennert.supabase:gotrue-kt")
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.ktor:ktor-client-okhttp:2.3.9")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     // Small Excel writer, strict JSON parsing, and optional Google account access.
     implementation("org.dhatim:fastexcel:0.18.4")
@@ -107,6 +135,8 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    // Room schema migration test (creates a real v1 database and upgrades it).
+    androidTestImplementation("androidx.room:room-testing:2.6.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

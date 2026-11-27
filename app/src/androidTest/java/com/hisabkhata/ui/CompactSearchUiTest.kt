@@ -39,6 +39,8 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.hisabkhata.R
 import com.hisabkhata.data.local.HisabDatabase
+import com.hisabkhata.data.sync.RoomSyncStore
+import com.hisabkhata.data.cloud.TestCloudSession
 import com.hisabkhata.data.local.entity.PersonType
 import com.hisabkhata.data.repository.CashRepository
 import com.hisabkhata.data.repository.LoanRepository
@@ -65,6 +67,8 @@ class CompactSearchUiTest {
     @get:Rule val compose = createComposeRule()
     private lateinit var context: Context
     private lateinit var db: HisabDatabase
+    private lateinit var syncStore: RoomSyncStore
+    private lateinit var session: TestCloudSession
     private lateinit var cash: CashRepository
     private lateinit var loans: LoanRepository
     private val oct1 = LocalDate.of(2026, 10, 1).toEpochDay()
@@ -73,8 +77,11 @@ class CompactSearchUiTest {
     @Before fun setUp() {
         context = ApplicationProvider.getApplicationContext()
         db = Room.inMemoryDatabaseBuilder(context, HisabDatabase::class.java).build()
-        cash = CashRepository(db.cashEntryDao())
-        loans = LoanRepository(db, context)
+        // These UI tests run signed out: rows save locally and queue nothing.
+        syncStore = RoomSyncStore(db)
+        session = TestCloudSession()
+        cash = CashRepository(db.cashEntryDao(), syncStore, session)
+        loans = LoanRepository(db, syncStore, session, context)
     }
     @After fun tearDown() { db.close() }
 

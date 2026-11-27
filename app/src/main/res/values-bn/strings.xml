@@ -341,4 +341,30 @@
     <string name="local_backup_fallback_name">নির্বাচিত ডিভাইস ব্যাকআপ</string>
     <string name="restore_replace_confirmation_title">সব তথ্য প্রতিস্থাপন করবেন?</string>
     <string name="restore_replace_confirmation_message">ডিভাইসের বর্তমান সব ব্যক্তি, ঋণের এন্ট্রি ও নগদ খাতার এন্ট্রি স্থায়ীভাবে মুছে যাবে। তারপর নির্বাচিত ব্যাকআপ থেকে %1$d জন ব্যক্তি, %2$dটি ঋণের এন্ট্রি ও %3$dটি নগদ খাতার এন্ট্রি পুনরুদ্ধার হবে। এটি ফেরানো যাবে না।</string>
+
+    <!-- v1.3.0: sign-in, account and cloud sync. -->
+    <string name="sign_in_subtitle">আপনার জন্য তৈরি অ্যাকাউন্টে সাইন ইন করুন। আপনার খাতা শুধু আপনার অ্যাকাউন্টেই দেখা যাবে।</string>
+    <string name="sign_in_email">ইমেইল</string>
+    <string name="sign_in_password">পাসওয়ার্ড</string>
+    <string name="sign_in_show">দেখান</string>
+    <string name="sign_in_hide">লুকান</string>
+    <string name="sign_in_action">সাইন ইন</string>
+    <string name="sign_in_help">অ্যাকাউন্ট মালিক তৈরি করেন। নিজে অ্যাকাউন্ট খোলার সুযোগ নেই। সাইন ইন না হলে মালিককে আপনার অ্যাকাউন্ট সক্রিয় আছে কিনা জিজ্ঞাসা করুন।</string>
+    <string name="sign_in_error_credentials">ইমেইল বা পাসওয়ার্ড ভুল।</string>
+    <string name="sign_in_error_disabled">এই অ্যাকাউন্টটি বন্ধ আছে। চালু করতে মালিককে বলুন।</string>
+    <string name="sign_in_error_network">ইন্টারনেট সংযোগ নেই। সংযোগ করে আবার চেষ্টা করুন। আপনার সংরক্ষিত তথ্য অক্ষত আছে।</string>
+    <string name="sign_in_error_unexpected">সাইন ইন সম্পন্ন হয়নি। আবার চেষ্টা করুন।</string>
+    <string name="settings_account">অ্যাকাউন্ট</string>
+    <string name="settings_account_desc">সাইন ইন করা অ্যাকাউন্ট ও ক্লাউড সিঙ্ক</string>
+    <string name="settings_signed_in_as">সাইন ইন করা আছে</string>
+    <string name="settings_sign_out">সাইন আউট</string>
+    <string name="settings_sync_now">এখনই সিঙ্ক করুন</string>
+    <string name="settings_sync_pending">ডিভাইসে সংরক্ষিত, সিঙ্কের অপেক্ষায়: %1$d</string>
+    <string name="settings_sync_synced">সব পরিবর্তন সিঙ্ক হয়েছে</string>
+    <string name="settings_sync_conflicts">ব্যবস্থা নিন: %1$dটি পরিবর্তন অন্য ডিভাইসের সাথে মিলছে না</string>
+    <string name="settings_sync_offline">সংযোগের অপেক্ষায়; পরিবর্তনগুলো এই ডিভাইসে নিরাপদ আছে</string>
+    <string name="settings_sign_out_warning">কিছু পরিবর্তন এখনো ক্লাউডে যায়নি। সাইন আউট করলে এই ফোনে অ্যাকাউন্টটি লুকাবে; পরের বার সাইন ইন করলে সেগুলো আপলোড হবে।</string>
+    <string name="settings_sign_out_confirm">তবুও সাইন আউট</string>
+    <string name="settings_sign_out_cancel">কাজ চালিয়ে যান</string>
+    <string name="settings_upgrade_backup_hint">প্রথমবার সাইন ইন করার আগে আপনার পুরোনো তথ্যের একটি লোকাল ব্যাকআপ সংরক্ষণ করুন।</string>
 </resources>

@@ -1,11 +1,11 @@
 package com.hisabkhata.di
 
 import android.content.Context
-import androidx.room.Room
 import com.hisabkhata.data.local.HisabDatabase
 import com.hisabkhata.data.local.dao.CashEntryDao
 import com.hisabkhata.data.local.dao.LoanEntryDao
 import com.hisabkhata.data.local.dao.PersonDao
+import com.hisabkhata.data.local.dao.SyncDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,9 +19,11 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun database(@ApplicationContext context: Context): HisabDatabase =
-        Room.databaseBuilder(context, HisabDatabase::class.java, "hisab-khata.db").build()
+        // v1.2.0 databases are upgraded in place: only the sync tables are added.
+        HisabDatabase.builder(context).build()
 
     @Provides fun cashEntryDao(db: HisabDatabase): CashEntryDao = db.cashEntryDao()
     @Provides fun personDao(db: HisabDatabase): PersonDao = db.personDao()
     @Provides fun loanEntryDao(db: HisabDatabase): LoanEntryDao = db.loanEntryDao()
+    @Provides fun syncDao(db: HisabDatabase): SyncDao = db.syncDao()
 }

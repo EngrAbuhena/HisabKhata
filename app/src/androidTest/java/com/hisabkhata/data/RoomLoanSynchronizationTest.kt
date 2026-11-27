@@ -9,7 +9,9 @@ import com.hisabkhata.data.local.HisabDatabase
 import com.hisabkhata.data.local.entity.CashEntryEntity
 import com.hisabkhata.data.local.entity.LoanEntryEntity
 import com.hisabkhata.data.local.entity.PersonType
+import com.hisabkhata.data.cloud.TestCloudSession
 import com.hisabkhata.data.repository.LoanRepository
+import com.hisabkhata.data.sync.RoomSyncStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -33,7 +35,8 @@ class RoomLoanSynchronizationTest {
     @Before fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(context, HisabDatabase::class.java).build()
-        repo = LoanRepository(db, context)
+        // Signed out: writes stay local and queue nothing, as on a fresh install.
+        repo = LoanRepository(db, RoomSyncStore(db), TestCloudSession(), context)
     }
 
     @After fun tearDown() { db.close() }

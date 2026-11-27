@@ -4,6 +4,34 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions use
 [Semantic Versioning](https://semver.org/).
 
+## [1.3.0]
+
+### Added
+- Sign-in at launch. Accounts are created by the owner in the Supabase dashboard;
+  self sign-up stays disabled, and the app has no registration screen.
+- Private per-account cloud ledgers: cash entries, loan entries and people belong
+  to one account and are never visible to other accounts, admins or the SuperAdmin.
+- Offline-first sync with a durable on-device queue. Repeated edits collapse,
+  retries are idempotent (`client_id` upserts) and queued work is account-scoped.
+- Conflict detection: a row changed on another device is never silently
+  overwritten; the change stays queued and Settings shows **Action needed**.
+- Cloud pull, so a fresh install or second device shows the account's ledger.
+- An Account card in Settings with the signed-in address, sync state, **Sync now**
+  and **Sign out**, which warns before hiding unsynced work.
+- English and Bengali text for every new screen.
+
+### Changed
+- The on-device database gains two sync tables (`sync_ids`, `sync_outbox`) in an
+  additive Room migration. Ledger tables, amounts in paisa, dates and
+  cash/loan links are unchanged.
+
+### Notes
+- Sign-in needs an internet connection the first time. Cached ledger data is used
+  offline afterwards.
+- Sync is not end-to-end encryption: the Supabase project operator can read the
+  database. Keep local JSON backups for recovery.
+- Existing v1.2.0 data upgrades in place; take a backup first.
+
 ## [1.2.0]
 
 ### Added
