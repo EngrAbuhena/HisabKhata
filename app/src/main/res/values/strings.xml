@@ -376,4 +376,31 @@ People created: %4$d</string>
     <string name="settings_sign_out_confirm">Sign out anyway</string>
     <string name="settings_sign_out_cancel">Keep working</string>
     <string name="settings_upgrade_backup_hint">Before signing in for the first time, save a local backup of your existing data.</string>
+
+    <!-- Notepad -->
+    <string name="nav_notepad">Notepad</string>
+    <string name="notepad_title">Notepad</string>
+    <string name="notepad_tab_mine">My Notes</string>
+    <string name="notepad_tab_public">Public Feed</string>
+    <string name="notepad_search_hint">Search notes…</string>
+    <string name="notepad_empty_mine">No notes yet. Tap + to write your first note.</string>
+    <string name="notepad_empty_public">No public notes from signed-in users yet.</string>
+    <string name="notepad_untitled">Untitled note</string>
+    <string name="notepad_new_note">New note</string>
+    <string name="notepad_edit_note">Edit note</string>
+    <string name="notepad_view_note">Public note</string>
+    <string name="notepad_title_label">Title (optional)</string>
+    <string name="notepad_body_label">Write your note…</string>
+    <string name="notepad_visibility_private">Private (only you)</string>
+    <string name="notepad_visibility_public">Public (signed-in users)</string>
+    <string name="notepad_show_author">Show my name on this public note</string>
+    <string name="notepad_show_author_hint">Hidden by default. SuperAdmin names are always hidden.</string>
+    <string name="notepad_author_by">By %1$s</string>
+    <string name="notepad_author_anonymous">Anonymous</string>
+    <string name="notepad_pin">Pin note</string>
+    <string name="notepad_unpin">Unpin note</string>
+    <string name="notepad_deleted">Note deleted</string>
+    <string name="notepad_undo">Undo</string>
+    <string name="notepad_saved_status">Saved locally</string>
+    <string name="notepad_read_only_hint">Read-only public note</string>
 </resources>

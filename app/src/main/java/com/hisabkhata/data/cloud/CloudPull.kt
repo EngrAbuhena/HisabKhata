@@ -4,6 +4,7 @@ import androidx.room.withTransaction
 import com.hisabkhata.data.local.HisabDatabase
 import com.hisabkhata.data.local.entity.CashEntryEntity
 import com.hisabkhata.data.local.entity.LoanEntryEntity
+import com.hisabkhata.data.local.entity.NoteEntity
 import com.hisabkhata.data.local.entity.PersonEntity
 import com.hisabkhata.data.local.entity.PersonType
 import com.hisabkhata.data.local.entity.SyncIdEntity
@@ -57,6 +58,9 @@ class CloudPull @Inject constructor(
         val people = fetch("people", "id,client_id,name,phone,note,type,updated_at")
         val loans = fetch("loan_entries", "id,client_id,person_id,entry_date,loan,paid,description,created_at_ms,linked_cash_entry_id,updated_at")
         val cash = fetch("cash_entries", "id,client_id,entry_date,deposit,cost,description,created_at_ms,linked_loan_entry_id,updated_at")
+        val notes = postgrest["notes_feed"]
+            .select(Columns.list("id", "client_id", "title", "body", "is_public", "show_author", "pinned", "updated_at", "is_mine", "author_display_name"))
+            .decodeList<JsonObject>()
 
         var report = PullReport()
         db.withTransaction {
@@ -64,6 +68,7 @@ class CloudPull @Inject constructor(
             report = report.merge(applyPeople(people, pending))
             report = report.merge(applyLoans(loans, pending))
             report = report.merge(applyCash(cash, pending))
+            report = report.merge(applyNotes(notes, pending))
         }
         return report
     }
@@ -178,6 +183,52 @@ class CloudPull @Inject constructor(
         return report
     }
 
+    private suspend fun applyNotes(rows: List<JsonObject>, pending: Set<Pair<SyncEntity, Long>>): PullReport {
+        val dao = db.noteDao()
+        var added = 0; var updated = 0; var skipped = 0
+        for (row in rows) {
+            val cloudId = row.str("id") ?: continue
+            val clientId = row.str("client_id") ?: continue
+            val existingLocal = sync.localIdForCloudId(SyncEntity.NOTE.name, cloudId)
+                ?: sync.findByClientId(SyncEntity.NOTE.name, clientId)?.localId
+            if (existingLocal != null && (SyncEntity.NOTE to existingLocal) in pending) {
+                skipped++
+                continue
+            }
+            val updatedAtStr = row.str("updated_at")
+            val updatedAtMs = updatedAtStr?.let { runCatching { java.time.Instant.parse(it).toEpochMilli() }.getOrNull() }
+                ?: System.currentTimeMillis()
+            val isMine = row.bool("is_mine") ?: false
+            val isPublic = row.bool("is_public") ?: false
+            val showAuthor = isPublic && (row.bool("show_author") ?: false)
+            val entity = NoteEntity(
+                id = existingLocal ?: 0L,
+                title = row.str("title") ?: "",
+                body = row.str("body") ?: "",
+                isPublic = isPublic,
+                showAuthor = showAuthor,
+                pinned = isMine && (row.bool("pinned") ?: false),
+                isMine = isMine,
+                authorDisplayName = if (isPublic && showAuthor) row.str("author_display_name") else null,
+                updatedAtMs = updatedAtMs,
+                deletedAtMs = null
+            )
+            if (existingLocal == null) {
+                val id = dao.insert(entity)
+                bind(SyncEntity.NOTE, id, clientId, cloudId, updatedAtStr)
+                added++
+            } else {
+                val existing = dao.findById(existingLocal)
+                if (existing != null) {
+                    dao.update(entity.copy(id = existingLocal))
+                    bind(SyncEntity.NOTE, existingLocal, clientId, cloudId, updatedAtStr)
+                    updated++
+                }
+            }
+        }
+        return PullReport(added = added, updated = updated, skippedPending = skipped)
+    }
+
     private suspend fun bind(entity: SyncEntity, localId: Long, clientId: String, cloudId: String, updatedAt: String?) {
         val changed = sync.bind(entity.name, localId, clientId, cloudId, updatedAt)
         if (changed == 0) {
@@ -194,6 +245,7 @@ class CloudPull @Inject constructor(
 
     private fun JsonObject.str(key: String): String? = runCatching { get(key)?.jsonPrimitive?.contentOrNull }.getOrNull()
     private fun JsonObject.long(key: String): Long? = runCatching { get(key)?.jsonPrimitive?.contentOrNull?.toLong() }.getOrNull()
+    private fun JsonObject.bool(key: String): Boolean? = runCatching { get(key)?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull() }.getOrNull()
 
     private companion object {
         const val PULL_BATCH = 1000

@@ -4,7 +4,7 @@ package com.hisabkhata.domain.sync
  * Which local table a queued change belongs to. The server mirrors these as
  * `people`, `loan_entries` and `cash_entries`.
  */
-enum class SyncEntity { PERSON, LOAN, CASH }
+enum class SyncEntity { PERSON, LOAN, CASH, NOTE }
 
 enum class SyncOperation { UPSERT, DELETE }
 
@@ -65,6 +65,15 @@ sealed interface CloudPayload {
         val createdAtMs: Long,
         val linkedLoanEntryId: String?,
         val linkedLoanLocalId: Long? = null
+    ) : CloudPayload
+
+    data class Note(
+        val clientId: String,
+        val title: String,
+        val body: String,
+        val isPublic: Boolean,
+        val showAuthor: Boolean,
+        val pinned: Boolean
     ) : CloudPayload
 }
 

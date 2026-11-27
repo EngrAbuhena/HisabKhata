@@ -58,6 +58,13 @@ class CloudGatewayImpl @Inject constructor(private val postgrest: Postgrest) : C
                     put("created_at_ms", JsonPrimitive(payload.createdAtMs))
                     put("linked_loan_entry_id", JsonNull)
                 }
+                is CloudPayload.Note -> {
+                    put("title", JsonPrimitive(payload.title))
+                    put("body", JsonPrimitive(payload.body))
+                    put("is_public", JsonPrimitive(payload.isPublic))
+                    put("show_author", JsonPrimitive(payload.showAuthor))
+                    put("pinned", JsonPrimitive(payload.pinned))
+                }
             }
         }
 
@@ -160,5 +167,6 @@ class CloudGatewayImpl @Inject constructor(private val postgrest: Postgrest) : C
         SyncEntity.PERSON -> "people"
         SyncEntity.LOAN -> "loan_entries"
         SyncEntity.CASH -> "cash_entries"
+        SyncEntity.NOTE -> "notes"
     }
 }

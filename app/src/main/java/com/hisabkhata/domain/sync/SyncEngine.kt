@@ -139,7 +139,7 @@ class SyncEngine(
         val loanClientId: String
         val cashClientId: String
         when (payload) {
-            is CloudPayload.Person -> return null
+            is CloudPayload.Person, is CloudPayload.Note -> return null
             is CloudPayload.Loan -> {
                 if (payload.linkedCashEntryId == null) return null
                 loanClientId = entry.clientId

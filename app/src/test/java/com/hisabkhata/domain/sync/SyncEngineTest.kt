@@ -69,6 +69,9 @@ private class FakeRecords(private val store: FakeStore) : SyncRecordSource {
             SyncEntity.PERSON -> PreparedRecord.Ready(
                 CloudPayload.Person(entry.clientId, "name-${entry.localId}", "", "", "lent")
             )
+            SyncEntity.NOTE -> PreparedRecord.Ready(
+                CloudPayload.Note(entry.clientId, "title-${entry.localId}", "body", isPublic = false, showAuthor = false, pinned = false)
+            )
             SyncEntity.LOAN -> {
                 // parentId is encoded as localId * 10 for this fake
                 val personLocal = entry.localId / 10

@@ -4,6 +4,7 @@ import android.content.Context
 import com.hisabkhata.data.local.HisabDatabase
 import com.hisabkhata.data.local.dao.CashEntryDao
 import com.hisabkhata.data.local.dao.LoanEntryDao
+import com.hisabkhata.data.local.dao.NoteDao
 import com.hisabkhata.data.local.dao.PersonDao
 import com.hisabkhata.data.local.dao.SyncDao
 import dagger.Module
@@ -25,5 +26,6 @@ object DatabaseModule {
     @Provides fun cashEntryDao(db: HisabDatabase): CashEntryDao = db.cashEntryDao()
     @Provides fun personDao(db: HisabDatabase): PersonDao = db.personDao()
     @Provides fun loanEntryDao(db: HisabDatabase): LoanEntryDao = db.loanEntryDao()
+    @Provides fun noteDao(db: HisabDatabase): NoteDao = db.noteDao()
     @Provides fun syncDao(db: HisabDatabase): SyncDao = db.syncDao()
 }

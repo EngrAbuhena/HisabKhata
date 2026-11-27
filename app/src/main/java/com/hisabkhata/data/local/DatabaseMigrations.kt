@@ -40,3 +40,21 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         )
     }
 }
+
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `notes` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`title` TEXT NOT NULL, `body` TEXT NOT NULL, " +
+                "`isPublic` INTEGER NOT NULL, `showAuthor` INTEGER NOT NULL, " +
+                "`pinned` INTEGER NOT NULL, `isMine` INTEGER NOT NULL, " +
+                "`authorDisplayName` TEXT, `updatedAtMs` INTEGER NOT NULL, " +
+                "`deletedAtMs` INTEGER)"
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_notes_deletedAtMs_isMine_pinned_updatedAtMs` " +
+                "ON `notes` (`deletedAtMs`, `isMine`, `pinned`, `updatedAtMs`)"
+        )
+    }
+}

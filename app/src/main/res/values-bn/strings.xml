@@ -367,4 +367,31 @@
     <string name="settings_sign_out_confirm">তবুও সাইন আউট</string>
     <string name="settings_sign_out_cancel">কাজ চালিয়ে যান</string>
     <string name="settings_upgrade_backup_hint">প্রথমবার সাইন ইন করার আগে আপনার পুরোনো তথ্যের একটি লোকাল ব্যাকআপ সংরক্ষণ করুন।</string>
+
+    <!-- Notepad -->
+    <string name="nav_notepad">নোটপ্যাড</string>
+    <string name="notepad_title">নোটপ্যাড</string>
+    <string name="notepad_tab_mine">আমার নোট</string>
+    <string name="notepad_tab_public">পাবলিক ফিড</string>
+    <string name="notepad_search_hint">নোট খুঁজুন…</string>
+    <string name="notepad_empty_mine">এখনো কোনো নোট নেই। প্রথম নোট লিখতে + চাপুন।</string>
+    <string name="notepad_empty_public">সাইন ইন করা ব্যবহারকারীদের কোনো পাবলিক নোট এখনো নেই।</string>
+    <string name="notepad_untitled">শিরোনামহীন নোট</string>
+    <string name="notepad_new_note">নতুন নোট</string>
+    <string name="notepad_edit_note">নোট সম্পাদনা</string>
+    <string name="notepad_view_note">পাবলিক নোট</string>
+    <string name="notepad_title_label">শিরোনাম (ঐচ্ছিক)</string>
+    <string name="notepad_body_label">আপনার নোট লিখুন…</string>
+    <string name="notepad_visibility_private">ব্যক্তিগত (শুধু আপনি)</string>
+    <string name="notepad_visibility_public">পাবলিক (সাইন ইন করা ব্যবহারকারীরা)</string>
+    <string name="notepad_show_author">এই পাবলিক নোটে আমার নাম দেখান</string>
+    <string name="notepad_show_author_hint">ডিফল্টভাবে লুকানো থাকে। সুপার-অ্যাডমিনের নাম সবসময় লুকানো থাকে।</string>
+    <string name="notepad_author_by">লিখেছেন %1$s</string>
+    <string name="notepad_author_anonymous">অজ্ঞাতনামা</string>
+    <string name="notepad_pin">নোট পিন করুন</string>
+    <string name="notepad_unpin">পিন সরান</string>
+    <string name="notepad_deleted">নোট মুছে ফেলা হয়েছে</string>
+    <string name="notepad_undo">পূর্বাবস্থায় ফেরান</string>
+    <string name="notepad_saved_status">লোকালভাবে সংরক্ষিত</string>
+    <string name="notepad_read_only_hint">শুধুমাত্র পঠনযোগ্য পাবলিক নোট</string>
 </resources>

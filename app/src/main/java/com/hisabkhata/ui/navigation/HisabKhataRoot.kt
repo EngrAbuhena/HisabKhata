@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -41,11 +42,14 @@ import com.hisabkhata.ui.loan.PeopleScreen
 import com.hisabkhata.ui.loan.PersonEditorScreen
 import com.hisabkhata.ui.loan.PersonLedgerScreen
 import com.hisabkhata.ui.loan.LoanEntryEditorScreen
+import com.hisabkhata.ui.notes.NoteEditorScreen
+import com.hisabkhata.ui.notes.NotepadScreen
 import kotlinx.coroutines.launch
 
 private object Routes {
     const val CASH = "cash"
     const val LOAN = "loan"
+    const val NOTEPAD = "notepad"
     const val SETTINGS = "settings"
     const val NEW_CASH = "cash/new"
     const val EDIT_CASH = "cash/edit/{entryId}"
@@ -54,6 +58,8 @@ private object Routes {
     const val EDIT_PERSON = "person/{personId}/edit"
     const val NEW_LOAN_ENTRY = "person/{personId}/entry-create"
     const val EDIT_LOAN_ENTRY = "person/{personId}/entry/{entryId}/edit"
+    const val NEW_NOTE = "notepad/new"
+    const val EDIT_NOTE = "notepad/edit/{noteId}"
     const val TRANSFER = "transfer"
     const val EXPORT = "export"
     const val EXPORT_PERSON = "export/person/{personId}"
@@ -64,6 +70,7 @@ private object Routes {
     fun editPerson(id: Long) = "person/$id/edit"
     fun newLoanEntry(personId: Long) = "person/$personId/entry-create"
     fun editLoanEntry(personId: Long, entryId: Long) = "person/$personId/entry/$entryId/edit"
+    fun editNote(id: Long) = "notepad/edit/$id"
     fun exportPerson(personId: Long) = "export/person/$personId"
 }
 
@@ -84,6 +91,7 @@ fun HisabKhataRoot() {
     val destinations = listOf(
         TopLevelDestination(Routes.CASH, R.string.nav_cash_book, Icons.AutoMirrored.Filled.List),
         TopLevelDestination(Routes.LOAN, R.string.nav_loan_ledger, Icons.Filled.Person),
+        TopLevelDestination(Routes.NOTEPAD, R.string.nav_notepad, Icons.Filled.Edit),
         TopLevelDestination(Routes.SETTINGS, R.string.nav_settings, Icons.Filled.Settings)
     )
     val showBottomBar = destinations.any { it.route == currentRoute }
@@ -164,6 +172,18 @@ fun HisabKhataRoot() {
                 arguments = listOf(navArgument("personId") { type = NavType.LongType }, navArgument("entryId") { type = NavType.LongType })
             ) {
                 LoanEntryEditorScreen(onBack = { navController.popBackStack() }, onDeleted = { showDeleted(R.string.entry_deleted, true) })
+            }
+            composable(Routes.NOTEPAD) {
+                NotepadScreen(
+                    onCreateNote = { navController.navigate(Routes.NEW_NOTE) },
+                    onOpenNote = { noteId -> navController.navigate(Routes.editNote(noteId)) }
+                )
+            }
+            composable(Routes.NEW_NOTE) {
+                NoteEditorScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.EDIT_NOTE, arguments = listOf(navArgument("noteId") { type = NavType.LongType })) {
+                NoteEditorScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.SETTINGS) {
                 SettingsScreen(onTransfer = { navController.navigate(Routes.TRANSFER) }, onBackup = { navController.navigate(Routes.BACKUP) })

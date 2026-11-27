@@ -27,6 +27,7 @@ class RoomSyncRecords @Inject constructor(
         SyncEntity.PERSON -> preparePerson(entry)
         SyncEntity.LOAN -> prepareLoan(entry)
         SyncEntity.CASH -> prepareCash(entry)
+        SyncEntity.NOTE -> prepareNote(entry)
     }
 
     private suspend fun preparePerson(entry: SyncEntry): PreparedRecord {
@@ -81,6 +82,23 @@ class RoomSyncRecords @Inject constructor(
                 createdAtMs = cash.createdAt,
                 linkedLoanEntryId = linkedLoanCloud,
                 linkedLoanLocalId = linkedLoanLocal
+            )
+        )
+    }
+
+    private suspend fun prepareNote(entry: SyncEntry): PreparedRecord {
+        val note = db.noteDao().findById(entry.localId) ?: return PreparedRecord.RowGone
+        if (note.deletedAtMs != null || !note.isMine) return PreparedRecord.RowGone
+        val trimmedTitle = note.title.trim().take(200)
+        if (trimmedTitle.isEmpty() && note.body.trim().isEmpty()) return PreparedRecord.RowGone
+        return PreparedRecord.Ready(
+            CloudPayload.Note(
+                clientId = entry.clientId,
+                title = trimmedTitle,
+                body = note.body,
+                isPublic = note.isPublic,
+                showAuthor = note.isPublic && note.showAuthor,
+                pinned = note.pinned
             )
         )
     }
