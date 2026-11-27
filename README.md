@@ -198,6 +198,16 @@ in [docs/GOOGLE_SETUP.md](docs/GOOGLE_SETUP.md). Live Google authorization and D
 operations require your own Google Cloud setup and have not been verified in this
 workspace.
 
+## Backend (accounts and sync schema)
+
+`backend/` holds the Supabase schema, policies and tests for accounts, private
+ledgers, notes and atomic linking, plus a README with the exact client contract.
+Run its suites with:
+
+```bash
+cd backend && ./scripts/run_local_accounts_tests.sh   # needs PostgreSQL 17
+```
+
 ## Project structure
 
 ```text
@@ -212,7 +222,9 @@ app/src/androidTest/          Android/Room and UI tests for debug builds
 app/schemas/                  Exported Room schemas (1 and 2)
 scripts/release-smoke/        Standalone minified-release device probe
 .github/workflows/            CI and signed tag-release workflows
+backend/                      Supabase migrations, policies and tests (see backend/README.md)
 docs/                         Release and Google OAuth checklists
+docs/project/                 Implementation plan, foundation report and account runbook
 ```
 
 Very large monetary values may be horizontally compressed on narrow screens at
