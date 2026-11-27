@@ -42,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hisabkhata.BuildConfig
 import com.hisabkhata.R
 import com.hisabkhata.data.cloud.CloudSession
 import com.hisabkhata.data.settings.AppLanguage
@@ -63,6 +64,7 @@ class SettingsViewModel @Inject constructor(
 ) : ViewModel() {
     val theme = preferences.theme
     val language = preferences.language
+    val appMode = preferences.appMode
     val account = session.account
     val syncState = sync.state
     fun setTheme(mode: ThemeMode) = preferences.setTheme(mode)
@@ -143,6 +145,36 @@ fun SettingsScreen(onTransfer: () -> Unit, onBackup: () -> Unit, viewModel: Sett
                     Text(stringResource(R.string.about_description), style = MaterialTheme.typography.bodyMedium)
                     Text(stringResource(R.string.about_data_warning), style = MaterialTheme.typography.bodySmall)
                 }
+            }
+            val currentYear = remember { java.util.Calendar.getInstance().get(java.util.Calendar.YEAR) }
+            val currentAppMode by viewModel.appMode.collectAsStateWithLifecycle()
+            val modeLabel = if (currentAppMode == com.hisabkhata.data.settings.AppMode.LOCAL_ONLY) "Local" else "Full"
+            val langLabel = if (language == AppLanguage.BENGALI) "Bengali" else "English"
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "${stringResource(R.string.app_name)} ${BuildConfig.VERSION_NAME}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    color = androidx.compose.ui.graphics.Color.Black,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                Text(
+                    text = "Developed by Abuhena Rony",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    color = androidx.compose.ui.graphics.Color(0xFF2E7D32),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                Text(
+                    text = "\u00A9 $currentYear Abuhena Rony - $langLabel - $modeLabel",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
             }
         }
     }
