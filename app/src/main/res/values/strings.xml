@@ -403,4 +403,12 @@ People created: %4$d</string>
     <string name="notepad_undo">Undo</string>
     <string name="notepad_saved_status">Saved locally</string>
     <string name="notepad_read_only_hint">Read-only public note</string>
+
+    <!-- App Mode & Remember Me -->
+    <string name="mode_select_title">Choose how to use Hisab Khata</string>
+    <string name="mode_local_only">Local Only</string>
+    <string name="mode_full">FULL</string>
+    <string name="auth_remember_me">Remember Me</string>
+    <string name="settings_switch_to_full">Switch to FULL</string>
+    <string name="settings_switch_to_full_desc">Sign in to enable cloud sync</string>
 </resources>

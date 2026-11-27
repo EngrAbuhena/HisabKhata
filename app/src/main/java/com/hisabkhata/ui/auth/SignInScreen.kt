@@ -2,6 +2,7 @@ package com.hisabkhata.ui.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -124,6 +126,20 @@ fun SignInScreen(viewModel: SignInViewModel = hiltViewModel()) {
             }
 
             Spacer(Modifier.height(20.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Checkbox(
+                    checked = state.rememberMe,
+                    onCheckedChange = viewModel::setRememberMe
+                )
+                Text(
+                    text = stringResource(R.string.auth_remember_me),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            Spacer(Modifier.height(8.dp))
             Button(
                 onClick = { focus.clearFocus(); viewModel.submit() },
                 enabled = state.canSubmit,

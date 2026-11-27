@@ -9,10 +9,12 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hisabkhata.data.settings.AppLocale
+import com.hisabkhata.data.settings.AppMode
 import com.hisabkhata.data.settings.AppPreferences
 import com.hisabkhata.data.settings.ThemeMode
 import javax.inject.Inject
 import com.hisabkhata.data.cloud.CloudSession
+import com.hisabkhata.ui.auth.ModeSelectionScreen
 import com.hisabkhata.ui.auth.SignInScreen
 import com.hisabkhata.ui.navigation.HisabKhataRoot
 import com.hisabkhata.ui.theme.HisabKhataTheme
@@ -44,11 +46,17 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.DARK -> true
             }
             val account by session.account.collectAsStateWithLifecycle()
+            val appMode by preferences.appMode.collectAsStateWithLifecycle()
+            val rememberMe by preferences.rememberMe.collectAsStateWithLifecycle()
             HisabKhataTheme(darkTheme = dark) {
-                // v1.3.0 requires sign-in at every launch: accounts are created by the
-                // owner with self sign-up disabled, and no session is persisted to disk,
-                // so a shared phone never reopens another account's ledger.
-                if (account == null) SignInScreen() else HisabKhataRoot()
+                when (appMode) {
+                    AppMode.UNSET -> ModeSelectionScreen(
+                        onSelectLocalOnly = { preferences.setAppMode(AppMode.LOCAL_ONLY) },
+                        onSelectFull = { preferences.setAppMode(AppMode.FULL) }
+                    )
+                    AppMode.LOCAL_ONLY -> HisabKhataRoot()
+                    AppMode.FULL -> if (account == null && !rememberMe) SignInScreen() else HisabKhataRoot()
+                }
             }
         }
     }

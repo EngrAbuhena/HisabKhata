@@ -394,4 +394,12 @@
     <string name="notepad_undo">পূর্বাবস্থায় ফেরান</string>
     <string name="notepad_saved_status">লোকালভাবে সংরক্ষিত</string>
     <string name="notepad_read_only_hint">শুধুমাত্র পঠনযোগ্য পাবলিক নোট</string>
+
+    <!-- App Mode & Remember Me -->
+    <string name="mode_select_title">হিসাব খাতা কীভাবে ব্যবহার করবেন</string>
+    <string name="mode_local_only">শুধু লোকাল</string>
+    <string name="mode_full">পূর্ণ সংস্করণ (FULL)</string>
+    <string name="auth_remember_me">আমাকে মনে রাখুন</string>
+    <string name="settings_switch_to_full">পূর্ণ সংস্করণে (FULL) যান</string>
+    <string name="settings_switch_to_full_desc">ক্লাউড সিঙ্ক চালু করতে সাইন ইন করুন</string>
 </resources>

@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
+enum class AppMode { UNSET, LOCAL_ONLY, FULL }
 
 @Singleton
 class AppPreferences @Inject constructor(@ApplicationContext context: Context) : AutomaticBackupState {
@@ -33,6 +34,24 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) :
     val automaticDriveStatus = mutableAutoStatus.asStateFlow()
     private val mutableLastAutomatic = MutableStateFlow(prefs.getLong("last_automatic_drive_backup", 0L))
     val lastAutomaticDriveBackup = mutableLastAutomatic.asStateFlow()
+
+    private val mutableAppMode = MutableStateFlow(
+        AppMode.entries.firstOrNull { it.name == prefs.getString("app_mode", AppMode.UNSET.name) } ?: AppMode.UNSET
+    )
+    val appMode = mutableAppMode.asStateFlow()
+
+    private val mutableRememberMe = MutableStateFlow(prefs.getBoolean("remember_me", false))
+    val rememberMe = mutableRememberMe.asStateFlow()
+
+    fun setAppMode(mode: AppMode) {
+        prefs.edit().putString("app_mode", mode.name).apply()
+        mutableAppMode.value = mode
+    }
+
+    fun setRememberMe(remember: Boolean) {
+        prefs.edit().putBoolean("remember_me", remember).apply()
+        mutableRememberMe.value = remember
+    }
 
     fun setTheme(mode: ThemeMode) { prefs.edit().putString("theme", mode.name).apply(); mutableTheme.value = mode }
     fun setLanguage(language: AppLanguage) {

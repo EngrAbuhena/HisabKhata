@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.hisabkhata.data.cloud.CloudSession
 import com.hisabkhata.data.cloud.SignInFailure
 import com.hisabkhata.data.cloud.SignInOutcome
+import com.hisabkhata.data.settings.AppPreferences
 import com.hisabkhata.data.sync.SyncCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -18,7 +19,8 @@ data class SignInUiState(
     val password: String = "",
     val working: Boolean = false,
     val failure: SignInFailure? = null,
-    val showPassword: Boolean = false
+    val showPassword: Boolean = false,
+    val rememberMe: Boolean = false
 ) {
     val canSubmit: Boolean get() = !working && email.contains('@') && password.isNotEmpty()
 }
@@ -26,15 +28,17 @@ data class SignInUiState(
 @HiltViewModel
 class SignInViewModel @Inject constructor(
     private val session: CloudSession,
-    private val sync: SyncCoordinator
+    private val sync: SyncCoordinator,
+    private val preferences: AppPreferences
 ) : ViewModel() {
-    private val mutable = MutableStateFlow(SignInUiState())
+    private val mutable = MutableStateFlow(SignInUiState(rememberMe = preferences.rememberMe.value))
     val state = mutable.asStateFlow()
     val account = session.account
 
     fun setEmail(value: String) = mutable.update { it.copy(email = value, failure = null) }
     fun setPassword(value: String) = mutable.update { it.copy(password = value, failure = null) }
     fun togglePassword() = mutable.update { it.copy(showPassword = !it.showPassword) }
+    fun setRememberMe(remember: Boolean) = mutable.update { it.copy(rememberMe = remember) }
 
     fun submit() {
         val current = mutable.value
@@ -46,6 +50,7 @@ class SignInViewModel @Inject constructor(
         viewModelScope.launch {
             when (val outcome = session.signIn(email, password)) {
                 is SignInOutcome.Success -> {
+                    preferences.setRememberMe(current.rememberMe)
                     mutable.update { it.copy(working = false) }
                     // First sign-in pushes whatever was saved locally before sign-in.
                     sync.pushNow()

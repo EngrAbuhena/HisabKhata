@@ -37,8 +37,8 @@ android {
         applicationId = "com.hisabkhata"
         minSdk = 24
         targetSdk = 35
-        versionCode = 8
-        versionName = "1.3.0"
+        versionCode = 9
+        versionName = "1.4.0"
 
         // Public Supabase endpoint. The publishable key is a client key, safe to ship:
         // it only grants the `anon`/`authenticated` roles, and every table is protected

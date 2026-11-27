@@ -45,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hisabkhata.R
 import com.hisabkhata.data.cloud.CloudSession
 import com.hisabkhata.data.settings.AppLanguage
+import com.hisabkhata.data.settings.AppMode
 import com.hisabkhata.data.settings.AppPreferences
 import com.hisabkhata.data.settings.ThemeMode
 import com.hisabkhata.data.sync.SyncCoordinator
